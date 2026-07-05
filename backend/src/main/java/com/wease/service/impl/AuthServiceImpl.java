@@ -44,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthResponse.builder()
                 .token(null)
+                .message("Registration Successful")
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole())
@@ -59,13 +60,15 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(
+                request.getEmail()
+        ).orElseThrow();
 
-        String jwtToken = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user);
 
         return AuthResponse.builder()
-                .token(jwtToken)
+                .token(token)
+                .message("Login Successful")
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .role(user.getRole())
