@@ -114,13 +114,13 @@ export default function CompleteWorkerProfile() {
 
         setStep(3);
       } catch (error) {
-        console.error("Error creating worker profile: ", error);
-        const data = error.response?.data;
-        if (data?.message) {
-          setErrors({ server: data.message });
-        } else {
-          setErrors({ server: "Failed to save profile. Make sure the backend is running." });
-        }
+        console.log(error);
+        console.log("Status:", error.response?.status);
+        console.log("Response:", error.response?.data);
+
+        setErrors({
+          server: JSON.stringify(error.response?.data ?? error.message)
+        });
       } finally {
         setIsSubmitting(false);
       }
