@@ -1,0 +1,11 @@
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-blue-500/20 selection:text-blue-900 dark:selection:text-blue-100;
+  }
+  html {
+    @apply font-sans scroll-smooth;
+  }
+}

@@ -1,0 +1,58 @@
+export const SERVICES = [
+  {
+    id: 1,
+    name: "Carpenter",
+    icon: "Hammer",
+    description: "Furniture Repair & Installation",
+    workers: 250,
+  },
+  {
+    id: 2,
+    name: "Painter",
+    icon: "Paintbrush",
+    description: "Interior & Exterior Painting",
+    workers: 180,
+  },
+  {
+    id: 3,
+    name: "Plumber",
+    icon: "Wrench",
+    description: "Pipe Repair & Water Fittings",
+    workers: 150,
+  },
+  {
+    id: 4,
+    name: "Electrician",
+    icon: "Zap",
+    description: "Wiring, Fixtures & Power Repair",
+    workers: 200,
+  },
+  {
+    id: 5,
+    name: "Cleaner",
+    icon: "Brush",
+    description: "Deep Home & Office Cleaning",
+    workers: 120,
+  },
+  {
+    id: 6,
+    name: "AC Repair",
+    icon: "AirVent",
+    description: "Cooling Systems Maintenance",
+    workers: 90,
+  },
+  {
+    id: 7,
+    name: "Labour",
+    icon: "Truck",
+    description: "Loading & General Assistance",
+    workers: 300,
+  },
+  {
+    id: 8,
+    name: "Mason",
+    icon: "Construction",
+    description: "Brickwork, Plastering & Repairs",
+    workers: 80,
+  },
+];
