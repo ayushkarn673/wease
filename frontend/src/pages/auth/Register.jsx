@@ -9,6 +9,7 @@ import PasswordInput from "../../components/auth/PasswordInput";
 import RoleSelector from "../../components/auth/RoleSelector";
 import GoogleButton from "../../components/auth/GoogleButton";
 import AuthDivider from "../../components/auth/AuthDivider";
+import { useAuth } from "../../context/AuthContext";
 import { Button } from "@/components/ui/Button";
 
 export default function Register() {
@@ -19,6 +20,7 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -58,6 +60,8 @@ export default function Register() {
       });
 
       console.log("Register success:", response);
+
+      login(response);
 
       // Success routing flow:
       if (role === "worker") {
