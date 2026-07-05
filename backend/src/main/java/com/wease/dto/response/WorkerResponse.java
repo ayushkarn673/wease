@@ -25,4 +25,12 @@ public class WorkerResponse {
     private Boolean available;
 
     private String profilePhoto;
+
+    private String bio;
+
+    private String address;
+
+    private Double latitude;
+
+    private Double longitude;
 }

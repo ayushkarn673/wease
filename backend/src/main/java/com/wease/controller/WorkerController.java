@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.wease.entity.Profession;
+
 import java.util.List;
 
 @RestController
@@ -18,8 +20,16 @@ public class WorkerController {
     private final WorkerService workerService;
 
     @GetMapping
-    public List<WorkerResponse> getWorkers() {
-        return workerService.getAllAvailableWorkers();
+    public List<WorkerResponse> getWorkers(
+            @RequestParam(required = false) Profession profession,
+            @RequestParam(required = false) String keyword
+    ) {
+        return workerService.getAllAvailableWorkers(profession, keyword);
+    }
+
+    @GetMapping("/{id}")
+    public WorkerResponse getWorkerDetails(@PathVariable Long id) {
+        return workerService.getWorkerDetails(id);
     }
 
     @PostMapping("/profile")

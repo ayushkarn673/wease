@@ -22,14 +22,29 @@ public class WorkerServiceImpl implements WorkerService {
     private final UserRepository userRepository;
 
     @Override
-    public List<WorkerResponse> getAllAvailableWorkers() {
+    public List<WorkerResponse> getAllAvailableWorkers(com.wease.entity.Profession profession, String keyword) {
+        List<WorkerProfile> workers;
 
-        List<WorkerProfile> workers =
-                workerProfileRepository.findByAvailableTrue();
+        if (profession != null && keyword != null && !keyword.trim().isEmpty()) {
+            workers = workerProfileRepository.findByAvailableTrueAndProfessionAndUserFullNameContainingIgnoreCase(profession, keyword.trim());
+        } else if (profession != null) {
+            workers = workerProfileRepository.findByAvailableTrueAndProfession(profession);
+        } else if (keyword != null && !keyword.trim().isEmpty()) {
+            workers = workerProfileRepository.findByAvailableTrueAndUserFullNameContainingIgnoreCase(keyword.trim());
+        } else {
+            workers = workerProfileRepository.findByAvailableTrue();
+        }
 
         return workers.stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Override
+    public WorkerResponse getWorkerDetails(Long id) {
+        WorkerProfile worker = workerProfileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found."));
+        return toResponse(worker);
     }
 
     @Override
@@ -79,6 +94,10 @@ public class WorkerServiceImpl implements WorkerService {
                 .verified(worker.getVerified())
                 .available(worker.getAvailable())
                 .profilePhoto(worker.getProfilePhoto())
+                .bio(worker.getBio())
+                .address(worker.getAddress())
+                .latitude(worker.getLatitude())
+                .longitude(worker.getLongitude())
                 .build();
     }
 }
