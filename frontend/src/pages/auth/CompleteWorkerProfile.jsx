@@ -293,7 +293,7 @@ export default function CompleteWorkerProfile() {
               </div>
             </div>
           </div>
-        )})}
+        )}
 
         {step === 3 && (
           <div className="text-center py-6">
