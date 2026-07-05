@@ -1,10 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Briefcase, IndianRupee, Star, PenTool, CheckCircle } from "lucide-react";
+import { Briefcase, IndianRupee, Star, PenTool, CheckCircle, MapPin } from "lucide-react";
 import AuthLayout from "../../layouts/AuthLayout";
 import AuthCard from "../../components/auth/AuthCard";
 import AuthInput from "../../components/auth/AuthInput";
 import { Button } from "@/components/ui/Button";
+import { createWorkerProfile } from "../../services/workerService";
+
+const serviceMapping = {
+  "Carpenter": "CARPENTER",
+  "Painter": "PAINTER",
+  "Electrician": "ELECTRICIAN",
+  "Plumber": "PLUMBER",
+  "Cleaner": "CLEANER",
+  "Mason": "MASON",
+  "AC Repair": "AC_TECHNICIAN",
+  "Labour": "LABOURER",
+};
 
 export default function CompleteWorkerProfile() {
   const [step, setStep] = useState(1);
@@ -13,6 +25,10 @@ export default function CompleteWorkerProfile() {
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState("");
+  const [address, setAddress] = useState("");
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
@@ -27,7 +43,28 @@ export default function CompleteWorkerProfile() {
     "Labour",
   ];
 
-  const handleNextStep = () => {
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude);
+        },
+        (error) => {
+          console.log("Error obtaining location: ", error);
+          // Default to Pune coordinates
+          setLatitude(18.5204);
+          setLongitude(73.8567);
+        }
+      );
+    } else {
+      // Default to Pune coordinates
+      setLatitude(18.5204);
+      setLongitude(73.8567);
+    }
+  }, []);
+
+  const handleNextStep = async () => {
     const newErrors = {};
 
     if (step === 1) {
@@ -38,22 +75,59 @@ export default function CompleteWorkerProfile() {
       if (!experience || isNaN(experience) || Number(experience) < 0) {
         newErrors.experience = "Please enter your experience in years";
       }
-    } else if (step === 2) {
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+      setErrors({});
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
       if (!bio || bio.length < 20) {
         newErrors.bio = "Please write a bio (minimum 20 characters)";
       }
       if (!skills) newErrors.skills = "Please list a few key skills";
-    }
+      if (!address) newErrors.address = "Please enter your service address";
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        return;
+      }
+
+      setErrors({});
+      setIsSubmitting(true);
+
+      try {
+        const professionEnum = serviceMapping[service];
+        await createWorkerProfile({
+          profession: professionEnum,
+          experience: parseInt(experience),
+          bio: `${bio} | Skills: ${skills}`,
+          hourlyRate: parseFloat(price),
+          address,
+          latitude: latitude || 18.5204,
+          longitude: longitude || 73.8567,
+        });
+
+        setStep(3);
+      } catch (error) {
+        console.error("Error creating worker profile: ", error);
+        const data = error.response?.data;
+        if (data?.message) {
+          setErrors({ server: data.message });
+        } else {
+          setErrors({ server: "Failed to save profile. Make sure the backend is running." });
+        }
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
-    setErrors({});
-    if (step < 3) {
-      setStep(step + 1);
-    } else {
+    if (step === 3) {
       navigate("/worker/dashboard");
     }
   };
@@ -141,20 +215,25 @@ export default function CompleteWorkerProfile() {
               </Button>
             </div>
           </div>
-        )}
-
-        {step === 2 && (
+        )}        {step === 2 && (
           <div>
             <div className="mb-8">
               <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Bio & Skills
+                Bio, Address & Skills
               </h2>
-              <p className="mt-2 text-sm font-semibold text-slate-550 dark:text-slate-455">
-                Describe your expertise to potential customers.
+              <p className="mt-2 text-sm font-semibold text-slate-555 dark:text-slate-455">
+                Describe your expertise and service location.
               </p>
             </div>
 
             <div className="space-y-6">
+              {errors.server && (
+                <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
+                  <span className="text-red-500 mt-0.5">⚠</span>
+                  <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{errors.server}</p>
+                </div>
+              )}
+
               {/* Short Bio */}
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -173,6 +252,17 @@ export default function CompleteWorkerProfile() {
                 )}
               </div>
 
+              {/* Address input */}
+              <AuthInput
+                label="Service Address"
+                type="text"
+                placeholder="Pune, Maharashtra"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                Icon={MapPin}
+                error={errors.address}
+              />
+
               {/* Skills input */}
               <AuthInput
                 label="Key Skills (comma separated)"
@@ -188,20 +278,22 @@ export default function CompleteWorkerProfile() {
                 <Button
                   onClick={() => setStep(1)}
                   variant="outline"
+                  disabled={isSubmitting}
                   className="flex-1 h-12 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-300 font-bold"
                 >
                   Back
                 </Button>
                 <Button
                   onClick={handleNextStep}
+                  disabled={isSubmitting}
                   className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold"
                 >
-                  Continue
+                  {isSubmitting ? "Saving..." : "Submit Profile"}
                 </Button>
               </div>
             </div>
           </div>
-        )}
+        )})}
 
         {step === 3 && (
           <div className="text-center py-6">
