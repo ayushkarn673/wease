@@ -14,6 +14,7 @@ import WorkerDashboard from "../pages/worker/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 import Profile from "../pages/Profile";
 import BookingDetails from "../pages/BookingDetails";
+import DashboardLayout from "../layouts/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
 
@@ -31,21 +32,19 @@ export default function AppRoutes() {
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/complete-worker-profile" element={<CompleteWorkerProfile />} />
 
-      {/* Protected + Role-based routes */}
-      <Route path="/customer/dashboard" element={
+      {/* Customer dashboard routes — shared DashboardLayout */}
+      <Route element={
         <ProtectedRoute>
           <RoleRoute role="CUSTOMER">
-            <CustomerDashboard />
+            <DashboardLayout />
           </RoleRoute>
         </ProtectedRoute>
-      } />
-      <Route path="/customer/workers" element={
-        <ProtectedRoute>
-          <RoleRoute role="CUSTOMER">
-            <Workers />
-          </RoleRoute>
-        </ProtectedRoute>
-      } />
+      }>
+        <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+        <Route path="/customer/workers" element={<Workers />} />
+      </Route>
+
+      {/* Worker dashboard */}
       <Route path="/worker/dashboard" element={
         <ProtectedRoute>
           <RoleRoute role="WORKER">
@@ -53,6 +52,8 @@ export default function AppRoutes() {
           </RoleRoute>
         </ProtectedRoute>
       } />
+
+      {/* Admin dashboard */}
       <Route path="/admin/dashboard" element={
         <ProtectedRoute>
           <RoleRoute role="ADMIN">
@@ -60,6 +61,8 @@ export default function AppRoutes() {
           </RoleRoute>
         </ProtectedRoute>
       } />
+
+      {/* Protected shared routes */}
       <Route path="/profile" element={
         <ProtectedRoute>
           <Profile />
