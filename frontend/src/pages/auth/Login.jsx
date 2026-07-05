@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowRight } from "lucide-react";
-import { login } from "../../services/authService";
-import { saveAuth } from "../../utils/auth";
+import { login as authLogin } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
 import AuthLayout from "../../layouts/AuthLayout";
 import AuthCard from "../../components/auth/AuthCard";
 import AuthInput from "../../components/auth/AuthInput";
@@ -17,6 +17,7 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -41,18 +42,20 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await login({ email, password });
+      const response = await authLogin({ email, password });
 
-      saveAuth(response);
+      login(response);
 
       console.log("Login success:", response);
 
       // Route by role
       const role = response.role;
       if (role === "WORKER") {
-        navigate("/worker-dashboard");
+        navigate("/worker/dashboard");
+      } else if (role === "ADMIN") {
+        navigate("/admin/dashboard");
       } else {
-        navigate("/customer-dashboard");
+        navigate("/customer/dashboard");
       }
     } catch (error) {
       console.error("Login error:", error);
