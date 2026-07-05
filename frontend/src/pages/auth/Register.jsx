@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, Mail, ArrowRight } from "lucide-react";
+import { register } from "../../services/authService";
 import AuthLayout from "../../layouts/AuthLayout";
 import AuthCard from "../../components/auth/AuthCard";
 import AuthInput from "../../components/auth/AuthInput";
@@ -16,9 +17,10 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -44,12 +46,33 @@ export default function Register() {
     }
 
     setErrors({});
+    setLoading(true);
 
-    // Success routing flow:
-    if (role === "worker") {
-      navigate("/complete-worker-profile");
-    } else {
-      navigate("/verify-email");
+    try {
+      const response = await register({
+        fullName: name,
+        email,
+        password,
+        phone: null,
+        role: role.toUpperCase(),
+      });
+
+      console.log("Register success:", response);
+
+      // Success routing flow:
+      if (role === "worker") {
+        navigate("/complete-worker-profile");
+      } else {
+        navigate("/verify-email");
+      }
+    } catch (error) {
+      console.error("Register error:", error.response?.data);
+      const serverMessage = error.response?.data?.message;
+      if (serverMessage) {
+        setErrors({ server: serverMessage });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,12 +136,17 @@ export default function Register() {
             <span className="text-slate-700 dark:text-slate-450 underline cursor-pointer">Privacy Policy</span>.
           </p>
 
+          {errors.server && (
+            <p className="text-sm text-red-500 font-semibold text-center">{errors.server}</p>
+          )}
+
           <Button
             type="submit"
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-transform pt-1"
+            disabled={loading}
+            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-transform pt-1 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Create Account
-            <ArrowRight size={18} />
+            {loading ? "Creating account..." : "Create Account"}
+            {!loading && <ArrowRight size={18} />}
           </Button>
         </form>
       </AuthCard>
