@@ -2,7 +2,6 @@ package com.wease.controller;
 
 import com.wease.dto.request.BookingRequest;
 import com.wease.dto.response.BookingResponse;
-import com.wease.entity.BookingStatus;
 import com.wease.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,22 +25,37 @@ public class BookingController {
         return bookingService.createBooking(request, authentication.getName());
     }
 
-    @PutMapping("/{id}/status")
-    public BookingResponse updateBookingStatus(
-            @PathVariable Long id,
-            @RequestParam BookingStatus status,
-            Authentication authentication
-    ) {
-        return bookingService.updateBookingStatus(id, status, authentication.getName());
-    }
-
     @GetMapping("/customer")
     public List<BookingResponse> getCustomerBookings(Authentication authentication) {
-        return bookingService.getCustomerBookings(authentication.getName());
+        return bookingService.customerBookings(authentication.getName());
     }
 
     @GetMapping("/worker")
     public List<BookingResponse> getWorkerBookings(Authentication authentication) {
-        return bookingService.getWorkerBookings(authentication.getName());
+        return bookingService.workerBookings(authentication.getName());
+    }
+
+    @PutMapping("/{id}/accept")
+    public BookingResponse acceptBooking(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return bookingService.acceptBooking(id, authentication.getName());
+    }
+
+    @PutMapping("/{id}/reject")
+    public BookingResponse rejectBooking(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return bookingService.rejectBooking(id, authentication.getName());
+    }
+
+    @PutMapping("/{id}/complete")
+    public BookingResponse completeBooking(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return bookingService.completeBooking(id, authentication.getName());
     }
 }

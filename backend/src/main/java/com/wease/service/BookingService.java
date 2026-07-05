@@ -2,7 +2,6 @@ package com.wease.service;
 
 import com.wease.dto.request.BookingRequest;
 import com.wease.dto.response.BookingResponse;
-import com.wease.entity.BookingStatus;
 
 import java.util.List;
 
@@ -10,10 +9,14 @@ public interface BookingService {
 
     BookingResponse createBooking(BookingRequest request, String customerEmail);
 
-    BookingResponse updateBookingStatus(Long id, BookingStatus status, String userEmail);
+    List<BookingResponse> customerBookings(String email);
 
-    List<BookingResponse> getCustomerBookings(String customerEmail);
+    List<BookingResponse> workerBookings(String email);
 
-    List<BookingResponse> getWorkerBookings(String workerEmail);
+    BookingResponse acceptBooking(Long bookingId, String email);
+
+    BookingResponse rejectBooking(Long bookingId, String email);
+
+    BookingResponse completeBooking(Long bookingId, String email);
 
 }

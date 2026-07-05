@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+// Entity representing a service booking request between customer and worker
 @Entity
 @Table(name = "bookings")
 @Getter
@@ -19,31 +20,25 @@ public class Booking extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
     private User customer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "worker_id", nullable = false)
-    private WorkerProfile worker;
-
-    @Column(nullable = false)
-    private LocalDate bookingDate;
-
-    @Column(nullable = false)
-    private LocalTime bookingTime;
+    @ManyToOne
+    @JoinColumn(name = "worker_id")
+    private User worker;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private BookingStatus status;
 
-    @Column(nullable = false)
-    private Double price;
+    private LocalDate bookingDate;
 
-    @Column(nullable = false)
-    private String address;
+    private LocalTime bookingTime;
 
-    private Double latitude;
+    private String serviceAddress;
 
-    private Double longitude;
+    @Column(length = 1000)
+    private String description;
+
+    private Double estimatedPrice;
 }
