@@ -10,6 +10,7 @@ import VerifyEmail from "../pages/auth/VerifyEmail";
 import CompleteWorkerProfile from "../pages/auth/CompleteWorkerProfile";
 import CustomerDashboard from "../pages/customer/Dashboard";
 import Workers from "../pages/customer/Workers";
+import WorkerDetails from "../pages/customer/WorkerDetails";
 import WorkerDashboard from "../pages/worker/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 import Profile from "../pages/Profile";
@@ -42,6 +43,7 @@ export default function AppRoutes() {
       }>
         <Route path="/customer/dashboard" element={<CustomerDashboard />} />
         <Route path="/customer/workers" element={<Workers />} />
+        <Route path="/customer/worker/:id" element={<WorkerDetails />} />
       </Route>
 
       {/* Worker dashboard */}
