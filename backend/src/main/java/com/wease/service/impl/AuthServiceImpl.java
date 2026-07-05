@@ -6,6 +6,7 @@ import com.wease.dto.response.AuthResponse;
 import com.wease.entity.Provider;
 import com.wease.entity.User;
 import com.wease.repository.UserRepository;
+import com.wease.exception.ResourceAlreadyExistsException;
 import com.wease.security.jwt.JwtService;
 import com.wease.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,9 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new ResourceAlreadyExistsException(
+                    "Email already registered."
+            );
         }
 
         User user = User.builder()
