@@ -66,10 +66,19 @@ export default function Register() {
         navigate("/verify-email");
       }
     } catch (error) {
-      console.error("Register error:", error.response?.data);
-      const serverMessage = error.response?.data?.message;
-      if (serverMessage) {
-        setErrors({ server: serverMessage });
+      console.error("Register error:", error);
+      const data = error.response?.data;
+      // ErrorResponse shape: { message: "..." }
+      // Validation shape: { fieldName: "error msg", ... }
+      // Network/CORS: error.response is undefined
+      if (data?.message) {
+        setErrors({ server: data.message });
+      } else if (data && typeof data === "object") {
+        // flatten first validation error
+        const firstMsg = Object.values(data)[0];
+        setErrors({ server: firstMsg || "Registration failed. Please try again." });
+      } else {
+        setErrors({ server: "Unable to connect to server. Make sure the backend is running." });
       }
     } finally {
       setLoading(false);
@@ -102,6 +111,13 @@ export default function Register() {
         <AuthDivider />
 
         <form onSubmit={handleRegister} className="space-y-4">
+          {errors.server && (
+            <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
+              <span className="text-red-500 mt-0.5">⚠</span>
+              <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{errors.server}</p>
+            </div>
+          )}
+
           <AuthInput
             label="Full Name"
             type="text"
@@ -135,10 +151,6 @@ export default function Register() {
             <span className="text-slate-700 dark:text-slate-450 underline cursor-pointer">Terms of Service</span> and{" "}
             <span className="text-slate-700 dark:text-slate-450 underline cursor-pointer">Privacy Policy</span>.
           </p>
-
-          {errors.server && (
-            <p className="text-sm text-red-500 font-semibold text-center">{errors.server}</p>
-          )}
 
           <Button
             type="submit"
