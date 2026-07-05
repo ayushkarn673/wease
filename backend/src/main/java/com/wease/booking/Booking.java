@@ -2,13 +2,13 @@ package com.wease.booking;
 
 import com.wease.core.BaseEntity;
 import com.wease.user.User;
+import com.wease.worker.WorkerProfile;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-// Entity representing a service booking request between customer and worker
 @Entity
 @Table(name = "bookings")
 @Getter
@@ -22,25 +22,32 @@ public class Booking extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_id")
+    // Customer who booked
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
-    @ManyToOne
-    @JoinColumn(name = "worker_id")
-    private User worker;
+    // Worker profile being booked
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "worker_profile_id", nullable = false)
+    private WorkerProfile workerProfile;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private BookingStatus status;
 
+    @Column(nullable = false)
     private LocalDate bookingDate;
 
+    @Column(nullable = false)
     private LocalTime bookingTime;
 
+    @Column(nullable = false)
     private String serviceAddress;
 
     @Column(length = 1000)
     private String description;
 
+    @Column(nullable = false)
     private Double estimatedPrice;
 }

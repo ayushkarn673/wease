@@ -1,13 +1,9 @@
 package com.wease.booking;
 
-
-
 import com.wease.user.User;
-import com.wease.worker.WorkerProfile;
-
 import com.wease.user.UserRepository;
+import com.wease.worker.WorkerProfile;
 import com.wease.worker.WorkerProfileRepository;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,14 +22,12 @@ public class BookingServiceImpl implements BookingService {
         User customer = userRepository.findByEmail(customerEmail)
                 .orElseThrow(() -> new RuntimeException("Customer not found."));
 
-        WorkerProfile workerProfile = workerProfileRepository.findById(request.getWorkerId())
+        WorkerProfile workerProfile = workerProfileRepository.findById(request.getWorkerProfileId())
                 .orElseThrow(() -> new RuntimeException("Worker profile not found."));
-
-        User workerUser = workerProfile.getUser();
 
         Booking booking = Booking.builder()
                 .customer(customer)
-                .worker(workerUser)
+                .workerProfile(workerProfile)
                 .status(BookingStatus.PENDING)
                 .bookingDate(request.getBookingDate())
                 .bookingTime(request.getBookingTime())
@@ -47,8 +41,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> customerBookings(String email) {
-        User customer = userRepository.findByEmail(email)
+    public List<BookingResponse> getCustomerBookings(String customerEmail) {
+        User customer = userRepository.findByEmail(customerEmail)
                 .orElseThrow(() -> new RuntimeException("Customer not found."));
 
         return bookingRepository.findByCustomer(customer).stream()
@@ -57,18 +51,21 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> workerBookings(String email) {
-        User worker = userRepository.findByEmail(email)
+    public List<BookingResponse> getWorkerBookings(String workerEmail) {
+        User workerUser = userRepository.findByEmail(workerEmail)
                 .orElseThrow(() -> new RuntimeException("Worker user not found."));
 
-        return bookingRepository.findByWorker(worker).stream()
+        WorkerProfile workerProfile = workerProfileRepository.findByUser(workerUser)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found."));
+
+        return bookingRepository.findByWorkerProfile(workerProfile).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Override
-    public BookingResponse acceptBooking(Long bookingId, String email) {
-        Booking booking = getVerifiedBookingForWorker(bookingId, email);
+    public BookingResponse acceptBooking(Long bookingId, String workerEmail) {
+        Booking booking = getVerifiedBookingForWorker(bookingId, workerEmail);
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new RuntimeException("Can only accept PENDING bookings.");
         }
@@ -78,8 +75,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse rejectBooking(Long bookingId, String email) {
-        Booking booking = getVerifiedBookingForWorker(bookingId, email);
+    public BookingResponse rejectBooking(Long bookingId, String workerEmail) {
+        Booking booking = getVerifiedBookingForWorker(bookingId, workerEmail);
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new RuntimeException("Can only reject PENDING bookings.");
         }
@@ -89,8 +86,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse completeBooking(Long bookingId, String email) {
-        Booking booking = getVerifiedBookingForWorker(bookingId, email);
+    public BookingResponse completeBooking(Long bookingId, String workerEmail) {
+        Booking booking = getVerifiedBookingForWorker(bookingId, workerEmail);
         if (booking.getStatus() != BookingStatus.ACCEPTED && booking.getStatus() != BookingStatus.IN_PROGRESS) {
             throw new RuntimeException("Can only complete ACCEPTED or IN_PROGRESS bookings.");
         }
@@ -99,14 +96,17 @@ public class BookingServiceImpl implements BookingService {
         return toResponse(booking);
     }
 
-    private Booking getVerifiedBookingForWorker(Long bookingId, String email) {
+    private Booking getVerifiedBookingForWorker(Long bookingId, String workerEmail) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Booking not found."));
 
-        User worker = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Worker not found."));
+        User workerUser = userRepository.findByEmail(workerEmail)
+                .orElseThrow(() -> new RuntimeException("Worker user not found."));
 
-        if (!booking.getWorker().getId().equals(worker.getId())) {
+        WorkerProfile workerProfile = workerProfileRepository.findByUser(workerUser)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found."));
+
+        if (!booking.getWorkerProfile().getId().equals(workerProfile.getId())) {
             throw new com.wease.core.exception.AccessDeniedException("You do not have access to this booking.");
         }
 
@@ -114,19 +114,16 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private BookingResponse toResponse(Booking booking) {
-        // Fetch the worker's profession from their profile
-        WorkerProfile workerProfile = workerProfileRepository.findByUser(booking.getWorker())
-                .orElse(null);
-
-        String profession = workerProfile != null ? workerProfile.getProfession().name() : "GENERAL";
-
         return BookingResponse.builder()
                 .bookingId(booking.getId())
                 .customerName(booking.getCustomer().getFullName())
-                .workerName(booking.getWorker().getFullName())
-                .profession(profession)
-                .status(booking.getStatus())
+                .workerName(booking.getWorkerProfile().getUser().getFullName())
+                .profession(booking.getWorkerProfile().getProfession().name())
+                .bookingDate(booking.getBookingDate())
+                .bookingTime(booking.getBookingTime())
+                .serviceAddress(booking.getServiceAddress())
                 .estimatedPrice(booking.getEstimatedPrice())
+                .status(booking.getStatus())
                 .build();
     }
 }

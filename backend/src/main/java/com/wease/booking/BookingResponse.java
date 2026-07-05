@@ -1,12 +1,14 @@
 package com.wease.booking;
 
-
 import lombok.*;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class BookingResponse {
 
     private Long bookingId;
@@ -17,7 +19,13 @@ public class BookingResponse {
 
     private String profession;
 
-    private BookingStatus status;
+    private LocalDate bookingDate;
+
+    private LocalTime bookingTime;
+
+    private String serviceAddress;
 
     private Double estimatedPrice;
+
+    private BookingStatus status;
 }

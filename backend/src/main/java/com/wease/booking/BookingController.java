@@ -1,8 +1,5 @@
 package com.wease.booking;
 
-
-
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -27,12 +24,12 @@ public class BookingController {
 
     @GetMapping("/customer")
     public List<BookingResponse> getCustomerBookings(Authentication authentication) {
-        return bookingService.customerBookings(authentication.getName());
+        return bookingService.getCustomerBookings(authentication.getName());
     }
 
     @GetMapping("/worker")
     public List<BookingResponse> getWorkerBookings(Authentication authentication) {
-        return bookingService.workerBookings(authentication.getName());
+        return bookingService.getWorkerBookings(authentication.getName());
     }
 
     @PutMapping("/{id}/accept")

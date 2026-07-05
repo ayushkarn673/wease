@@ -1,22 +1,34 @@
 package com.wease.booking;
 
-
-
-
 import java.util.List;
 
 public interface BookingService {
 
-    BookingResponse createBooking(BookingRequest request, String customerEmail);
+    BookingResponse createBooking(
+            BookingRequest request,
+            String customerEmail
+    );
 
-    List<BookingResponse> customerBookings(String email);
+    List<BookingResponse> getCustomerBookings(
+            String customerEmail
+    );
 
-    List<BookingResponse> workerBookings(String email);
+    List<BookingResponse> getWorkerBookings(
+            String workerEmail
+    );
 
-    BookingResponse acceptBooking(Long bookingId, String email);
+    BookingResponse acceptBooking(
+            Long bookingId,
+            String workerEmail
+    );
 
-    BookingResponse rejectBooking(Long bookingId, String email);
+    BookingResponse rejectBooking(
+            Long bookingId,
+            String workerEmail
+    );
 
-    BookingResponse completeBooking(Long bookingId, String email);
-
+    BookingResponse completeBooking(
+            Long bookingId,
+            String workerEmail
+    );
 }
