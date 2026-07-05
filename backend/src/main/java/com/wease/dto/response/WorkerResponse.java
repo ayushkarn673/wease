@@ -1,36 +1,29 @@
 package com.wease.dto.response;
 
+import com.wease.entity.Profession;
 import lombok.*;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class WorkerResponse {
 
     private Long id;
 
     private String fullName;
 
-    private String profession;
+    private Profession profession;
 
     private Integer experience;
 
     private Double hourlyRate;
 
-    private Double rating;
+    private String address;
 
     private Boolean verified;
 
     private Boolean available;
 
     private String profilePhoto;
-
-    private String bio;
-
-    private String address;
-
-    private Double latitude;
-
-    private Double longitude;
 }

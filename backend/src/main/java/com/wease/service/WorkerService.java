@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface WorkerService {
 
-    List<WorkerResponse> getAllAvailableWorkers(Profession profession, String keyword);
+    List<WorkerResponse> getAllAvailableWorkers();
 
     WorkerResponse getWorkerDetails(Long id);
 

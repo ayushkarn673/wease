@@ -20,11 +20,8 @@ public class WorkerController {
     private final WorkerService workerService;
 
     @GetMapping
-    public List<WorkerResponse> getWorkers(
-            @RequestParam(required = false) Profession profession,
-            @RequestParam(required = false) String keyword
-    ) {
-        return workerService.getAllAvailableWorkers(profession, keyword);
+    public List<WorkerResponse> getWorkers() {
+        return workerService.getAllAvailableWorkers();
     }
 
     @GetMapping("/{id}")

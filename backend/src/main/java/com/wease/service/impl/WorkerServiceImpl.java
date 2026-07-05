@@ -22,20 +22,9 @@ public class WorkerServiceImpl implements WorkerService {
     private final UserRepository userRepository;
 
     @Override
-    public List<WorkerResponse> getAllAvailableWorkers(com.wease.entity.Profession profession, String keyword) {
-        List<WorkerProfile> workers;
-
-        if (profession != null && keyword != null && !keyword.trim().isEmpty()) {
-            workers = workerProfileRepository.findByAvailableTrueAndProfessionAndUserFullNameContainingIgnoreCase(profession, keyword.trim());
-        } else if (profession != null) {
-            workers = workerProfileRepository.findByAvailableTrueAndProfession(profession);
-        } else if (keyword != null && !keyword.trim().isEmpty()) {
-            workers = workerProfileRepository.findByAvailableTrueAndUserFullNameContainingIgnoreCase(keyword.trim());
-        } else {
-            workers = workerProfileRepository.findByAvailableTrue();
-        }
-
-        return workers.stream()
+    public List<WorkerResponse> getAllAvailableWorkers() {
+        return workerProfileRepository.findByAvailableTrue()
+                .stream()
                 .map(this::toResponse)
                 .toList();
     }
@@ -83,21 +72,17 @@ public class WorkerServiceImpl implements WorkerService {
         return toResponse(profile);
     }
 
-    private WorkerResponse toResponse(WorkerProfile worker) {
+    private WorkerResponse toResponse(WorkerProfile profile) {
         return WorkerResponse.builder()
-                .id(worker.getId())
-                .fullName(worker.getUser().getFullName())
-                .profession(worker.getProfession().name())
-                .experience(worker.getExperience())
-                .hourlyRate(worker.getHourlyRate())
-                .rating(null) // TODO: calculate from reviews later
-                .verified(worker.getVerified())
-                .available(worker.getAvailable())
-                .profilePhoto(worker.getProfilePhoto())
-                .bio(worker.getBio())
-                .address(worker.getAddress())
-                .latitude(worker.getLatitude())
-                .longitude(worker.getLongitude())
+                .id(profile.getId())
+                .fullName(profile.getUser().getFullName())
+                .profession(profile.getProfession())
+                .experience(profile.getExperience())
+                .hourlyRate(profile.getHourlyRate())
+                .address(profile.getAddress())
+                .verified(profile.getVerified())
+                .available(profile.getAvailable())
+                .profilePhoto(profile.getProfilePhoto())
                 .build();
     }
 }

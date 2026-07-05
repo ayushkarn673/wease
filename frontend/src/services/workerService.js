@@ -5,11 +5,8 @@ export const createWorkerProfile = async (profileData) => {
   return response.data;
 };
 
-export const getAvailableWorkers = async (profession, keyword) => {
-  const params = {};
-  if (profession && profession !== "ALL") params.profession = profession;
-  if (keyword) params.keyword = keyword;
-  const response = await api.get("/workers", { params });
+export const getAvailableWorkers = async () => {
+  const response = await api.get("/workers");
   return response.data;
 };
 
