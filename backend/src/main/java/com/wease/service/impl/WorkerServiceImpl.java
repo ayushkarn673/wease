@@ -42,7 +42,7 @@ public class WorkerServiceImpl implements WorkerService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (user.getRole() != Role.WORKER) {
-            throw new RuntimeException("Only workers can create a profile");
+            throw new com.wease.exception.AccessDeniedException("Only workers can create a profile.");
         }
 
         workerProfileRepository.findByUser(user)
