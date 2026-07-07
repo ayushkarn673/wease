@@ -12,30 +12,30 @@ export default function WorkerCard({ worker }) {
       <div className="flex items-center justify-between">
 
         <div>
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-xl font-bold">
             {worker.fullName}
           </h2>
 
-          <p className="text-indigo-600 font-semibold text-sm">
+          <p className="text-slate-500">
             {worker.profession}
           </p>
         </div>
 
         {worker.verified && (
-          <BadgeCheck className="text-emerald-500" />
+          <BadgeCheck className="text-blue-600" />
         )}
 
       </div>
 
-      <div className="mt-5 space-y-2 text-gray-600 text-sm">
+      <div className="mt-5 space-y-2">
 
         <p className="flex items-center gap-2">
-          <Briefcase size={18} className="text-gray-400" />
+          <Briefcase size={18} />
           {worker.experience} Years Experience
         </p>
 
         <p className="flex items-center gap-2">
-          <MapPin size={18} className="text-gray-400" />
+          <MapPin size={18} />
           {worker.address}
         </p>
 
@@ -43,29 +43,29 @@ export default function WorkerCard({ worker }) {
 
       <div className="mt-6 flex items-center justify-between">
 
-        <span className="text-2xl font-black text-gray-800">
+        <span className="text-2xl font-bold text-blue-600">
           ₹{worker.hourlyRate}
         </span>
 
-        <button 
-          onClick={() => setOpen(true)}
-          className="rounded-2xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all"
+        <button
+            onClick={() => setOpen(true)}
+            className="rounded-xl bg-blue-600 px-5 py-2 text-white"
         >
-          Book Now
+            Book Now
         </button>
 
-      </div>
+        <BookingModal
+            worker={worker}
+            isOpen={open}
+            onClose={() => setOpen(false)}
+        >
+            <BookingForm
+                worker={worker}
+                onClose={() => setOpen(false)}
+            />
+        </BookingModal>
 
-      <BookingModal
-        worker={worker}
-        isOpen={open}
-        onClose={() => setOpen(false)}
-      >
-        <BookingForm
-          worker={worker}
-          onClose={() => setOpen(false)}
-        />
-      </BookingModal>
+      </div>
 
     </div>
   );
