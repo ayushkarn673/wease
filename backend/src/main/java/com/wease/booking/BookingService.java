@@ -31,4 +31,9 @@ public interface BookingService {
             Long bookingId,
             String workerEmail
     );
+
+    BookingResponse getBookingDetails(
+            Long bookingId,
+            String email
+    );
 }

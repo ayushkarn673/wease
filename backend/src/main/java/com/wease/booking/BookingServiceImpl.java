@@ -139,6 +139,21 @@ public class BookingServiceImpl implements BookingService {
         return toResponse(booking);
     }
 
+    @Override
+    public BookingResponse getBookingDetails(Long bookingId, String email) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        boolean isCustomer = booking.getCustomer().getEmail().equals(email);
+        boolean isWorker = booking.getWorkerProfile().getUser().getEmail().equals(email);
+
+        if (!isCustomer && !isWorker) {
+            throw new com.wease.core.exception.AccessDeniedException("You do not have access to view this booking.");
+        }
+
+        return toResponse(booking);
+    }
+
     private BookingResponse toResponse(Booking booking) {
         return BookingResponse.builder()
                 .bookingId(booking.getId())

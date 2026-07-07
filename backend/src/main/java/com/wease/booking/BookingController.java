@@ -21,7 +21,13 @@ public class BookingController {
     ) {
         return bookingService.createBooking(request, authentication.getName());
     }
-
+    @GetMapping("/{id}")
+    public BookingResponse getBookingDetails(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return bookingService.getBookingDetails(id, authentication.getName());
+    }
     @GetMapping("/customer")
     public List<BookingResponse> customerBookings(Authentication authentication) {
         return bookingService.getCustomerBookings(authentication.getName());
