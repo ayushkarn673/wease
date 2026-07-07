@@ -39,4 +39,15 @@ public class WorkerController {
                 authentication.getName()
         );
     }
+
+    @PutMapping("/availability")
+    public WorkerResponse updateAvailability(
+            @Valid @RequestBody AvailabilityRequest request,
+            Authentication authentication
+    ) {
+        return workerService.updateAvailability(
+                request.getAvailable(),
+                authentication.getName()
+        );
+    }
 }

@@ -18,4 +18,9 @@ public interface WorkerService {
             String email
     );
 
+    WorkerResponse updateAvailability(
+            Boolean available,
+            String email
+    );
+
 }

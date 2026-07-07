@@ -1,14 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import DashboardHeader from "../../components/customer/DashboardHeader";
-import IncomingRequests from "./IncomingRequests";
-import { Bell, ShieldAlert, Sparkles, TrendingUp } from "lucide-react";
+import DashboardStats from "../../components/worker/DashboardStats";
+import RequestCard from "../../components/worker/RequestCard";
+import RecentJobCard from "../../components/worker/RecentJobCard";
+import AvailabilityToggle from "../../components/worker/AvailabilityToggle";
+import { getWorkerDashboard, updateAvailability, acceptBooking, rejectBooking } from "../../services/bookingService";
+import { Sparkles, ShieldAlert, TrendingUp, Star } from "lucide-react";
 
 export default function WorkerDashboard() {
   const { user } = useAuth();
-  const [pendingCount, setPendingCount] = useState(0);
-  const [todayJobsCount, setTodayJobsCount] = useState(0);
-  const [todayEarnings, setTodayEarnings] = useState(0);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [toggleLoading, setToggleLoading] = useState(false);
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      const dashboardData = await getWorkerDashboard();
+      setData(dashboardData);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load dashboard data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleAvailability = async (newVal) => {
+    try {
+      setToggleLoading(true);
+      const res = await updateAvailability(newVal);
+      setData(prev => prev ? { ...prev, available: res.available } : null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to toggle availability status.");
+    } finally {
+      setToggleLoading(false);
+    }
+  };
+
+  const handleAccept = async (id) => {
+    try {
+      await acceptBooking(id);
+      await loadDashboard();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to accept booking.");
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      await rejectBooking(id);
+      await loadDashboard();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to reject booking.");
+    }
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -17,24 +72,32 @@ export default function WorkerDashboard() {
     return "Good Evening";
   };
 
-  const handleUpdateBookings = (allBookings) => {
-    const todayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-
-    const pending = allBookings.filter((b) => b.status === "PENDING");
-    
-    const todayJobs = allBookings.filter((b) => 
-      (b.status === "ACCEPTED" || b.status === "IN_PROGRESS" || b.status === "COMPLETED") &&
-      b.bookingDate === todayStr
+  if (loading && !data) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <DashboardHeader />
+        <div className="flex flex-col justify-center items-center py-24">
+          <p className="text-gray-500 animate-pulse font-bold text-lg">Loading dashboard data...</p>
+        </div>
+      </div>
     );
+  }
 
-    const earnings = allBookings
-      .filter((b) => b.status === "COMPLETED" && b.bookingDate === todayStr)
-      .reduce((sum, b) => sum + (b.finalPrice || b.estimatedPrice || 0), 0);
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <DashboardHeader />
+        <main className="mx-auto max-w-7xl px-6 py-8">
+          <div className="p-6 bg-red-50 text-red-600 rounded-3xl text-center border border-red-150 font-semibold">
+            {error}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-    setPendingCount(pending.length);
-    setTodayJobsCount(todayJobs.length);
-    setTodayEarnings(earnings);
-  };
+  const incomingRequests = data?.recentBookings?.filter(b => b.status === "PENDING") || [];
+  const recentJobs = data?.recentBookings?.filter(b => b.status === "COMPLETED").slice(0, 5) || [];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -42,58 +105,101 @@ export default function WorkerDashboard() {
 
       <main className="mx-auto max-w-7xl px-6 py-8">
         
-        {/* Welcome Banner */}
-        <div className="mb-8 rounded-3xl bg-slate-900 p-8 text-white relative overflow-hidden shadow-lg">
-          <div className="absolute right-0 top-0 h-full w-1/3 opacity-10 bg-radial-gradient"></div>
-          <h1 className="text-3xl font-black tracking-tight">
-            {getGreeting()}, {user?.fullName || "Worker"} 👋
-          </h1>
-          <p className="mt-2 text-slate-400 max-w-lg text-sm font-medium">
-            Welcome to your worker portal. Here you can track active schedules, manage profile bookings, and check your daily earnings.
-          </p>
+        {/* Welcome Header Panel */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+          <div>
+            <h1 className="text-3xl font-black text-gray-800">
+              👋 {getGreeting()} {user?.fullName || "Worker"}
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Here is your daily summary and schedule details.
+            </p>
+          </div>
+          <AvailabilityToggle
+            available={data?.available ?? true}
+            onToggle={handleToggleAvailability}
+            disabled={toggleLoading}
+          />
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+        {/* Dashboard Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          <DashboardStats
+            title="Today's Earnings"
+            value={`₹${data?.todayEarnings || 0}`}
+            icon={<TrendingUp size={20} />}
+          />
+          <DashboardStats
+            title="Today's Jobs"
+            value={data?.todayJobs || 0}
+            icon={<Sparkles size={20} />}
+          />
+          <DashboardStats
+            title="Pending Requests"
+            value={data?.pendingRequests || 0}
+            icon={<ShieldAlert size={20} />}
+          />
+          <DashboardStats
+            title="Rating"
+            value={`⭐${data?.rating || "4.9"}`}
+            icon={<Star size={20} className="fill-amber-400 text-amber-400" />}
+          />
+        </div>
+
+        {/* Dynamic Inner Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Pending Requests</p>
-              <h3 className="text-3xl font-black text-gray-800 mt-1">{pendingCount}</h3>
+          {/* Incoming Booking Requests */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">
+                Incoming Requests
+              </h2>
+              <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold">
+                {incomingRequests.length} Pending
+              </span>
             </div>
-            <div className="p-3 bg-amber-50 text-amber-500 rounded-2xl">
-              <ShieldAlert size={24} />
-            </div>
+
+            {incomingRequests.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-gray-200">
+                <p className="text-gray-400 font-medium">No pending requests at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {incomingRequests.map((booking) => (
+                  <RequestCard
+                    key={booking.bookingId}
+                    booking={booking}
+                    onAccept={handleAccept}
+                    onReject={handleReject}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Today's Jobs</p>
-              <h3 className="text-3xl font-black text-gray-800 mt-1">{todayJobsCount}</h3>
-            </div>
-            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
-              <Sparkles size={24} />
-            </div>
+          {/* Recent Jobs */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-gray-800">
+              Recent Jobs
+            </h2>
+
+            {recentJobs.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-gray-200">
+                <p className="text-gray-400 font-medium">No completed jobs yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentJobs.map((booking) => (
+                  <RecentJobCard
+                    key={booking.bookingId}
+                    booking={booking}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Today's Earnings</p>
-              <h3 className="text-3xl font-black text-emerald-600 mt-1">₹{todayEarnings}</h3>
-            </div>
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
-              <TrendingUp size={24} />
-            </div>
-          </div>
-
-        </div>
-
-        {/* Incoming Requests Section */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">
-            Incoming Requests
-          </h2>
-          <IncomingRequests onUpdate={handleUpdateBookings} />
         </div>
 
       </main>

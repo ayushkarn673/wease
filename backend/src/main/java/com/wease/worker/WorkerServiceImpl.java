@@ -72,6 +72,20 @@ public class WorkerServiceImpl implements WorkerService {
         return toResponse(profile);
     }
 
+    @Override
+    public WorkerResponse updateAvailability(Boolean available, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        WorkerProfile profile = workerProfileRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found."));
+
+        profile.setAvailable(available);
+        workerProfileRepository.save(profile);
+
+        return toResponse(profile);
+    }
+
     private WorkerResponse toResponse(WorkerProfile profile) {
         return WorkerResponse.builder()
                 .id(profile.getId())
