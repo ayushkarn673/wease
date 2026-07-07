@@ -1,5 +1,3 @@
-import React from "react";
-
 export default function DashboardStats({
   title,
   value,
@@ -7,16 +5,20 @@ export default function DashboardStats({
   color = "text-blue-600",
 }) {
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100">
+    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition">
 
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
 
         <div>
-          <p className="text-sm text-slate-500">{title}</p>
+
+          <p className="text-sm text-gray-500">
+            {title}
+          </p>
 
           <h2 className="mt-2 text-3xl font-bold">
             {value}
           </h2>
+
         </div>
 
         <div className={`text-4xl ${color}`}>
