@@ -23,7 +23,7 @@ public class BookingController {
     }
 
     @GetMapping("/customer")
-    public List<BookingResponse> getCustomerBookings(Authentication authentication) {
+    public List<BookingResponse> customerBookings(Authentication authentication) {
         return bookingService.getCustomerBookings(authentication.getName());
     }
 

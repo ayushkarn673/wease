@@ -52,7 +52,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingResponse> getCustomerBookings(String customerEmail) {
         User customer = userRepository.findByEmail(customerEmail)
-                .orElseThrow(() -> new RuntimeException("Customer not found."));
+                .orElseThrow(() -> new RuntimeException("Customer not found"));
 
         return bookingRepository.findByCustomer(customer).stream()
                 .map(this::toResponse)

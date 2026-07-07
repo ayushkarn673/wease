@@ -23,6 +23,14 @@ export default function DashboardHeader() {
           <Link to="/" className="text-2xl font-bold text-blue-600">
             Wease
           </Link>
+          <nav className="hidden lg:flex items-center gap-6 ml-8">
+            <Link to="/customer/dashboard" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition">
+              Find Workers
+            </Link>
+            <Link to="/customer/bookings" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition">
+              My Bookings
+            </Link>
+          </nav>
         </div>
 
         <div className="hidden md:flex items-center rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 w-96">
