@@ -1,56 +1,73 @@
-export default function RequestCard({ booking, onAccept, onReject }) {
+import React from "react";
+
+export default function RequestCard({
+  booking,
+  onAccept,
+  onReject,
+}) {
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-md transition duration-200">
-      <div className="flex justify-between items-start">
+    <div className="rounded-3xl bg-white p-6 shadow border border-slate-100">
+
+      <div className="flex justify-between">
+
         <div>
-          <h3 className="text-xl font-bold text-gray-800">
+
+          <h2 className="text-xl font-bold">
             {booking.customerName}
-          </h3>
-          <p className="text-sm text-indigo-600 font-medium mt-0.5">
-             🔧 Service Requested
+          </h2>
+
+          <p className="text-slate-500">
+            {booking.profession}
           </p>
+
         </div>
-        <span className="text-2xl font-black text-gray-800">
-          ₹{booking.estimatedPrice}
+
+        <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700 font-semibold">
+
+          {booking.status}
+
         </span>
+
       </div>
 
-      {booking.description && (
-        <div className="mt-4 p-3 bg-slate-50 rounded-2xl text-sm text-gray-600 border border-gray-100">
-          <p className="font-semibold text-gray-700 mb-1">Details:</p>
-          {booking.description}
-        </div>
-      )}
+      <div className="mt-5 space-y-2 text-slate-600">
 
-      <div className="mt-5 grid grid-cols-3 gap-3 text-sm text-gray-600">
-        <div className="flex items-center gap-1.5">
-          <span className="text-gray-400">📅</span>
-          <span>{booking.bookingDate}</span>
-        </div>
-        <div className="flex items-center gap-1.5 col-span-2">
-          <span className="text-gray-400">🕒</span>
-          <span>{booking.bookingTime}</span>
-        </div>
-        <div className="flex items-center gap-1.5 col-span-3 mt-1">
-          <span className="text-gray-400">📍</span>
-          <span className="truncate">{booking.serviceAddress}</span>
-        </div>
+        <p>📅 {booking.bookingDate}</p>
+
+        <p>🕒 {booking.bookingTime}</p>
+
+        <p>📍 {booking.serviceAddress}</p>
+
       </div>
 
-      <div className="mt-6 flex gap-3">
-        <button
-          onClick={() => onReject(booking.bookingId)}
-          className="flex-1 rounded-2xl border border-red-200 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition active:scale-95"
-        >
-          Reject
-        </button>
-        <button
-          onClick={() => onAccept(booking.bookingId)}
-          className="flex-1 rounded-2xl bg-indigo-600 py-3 text-sm font-bold text-white hover:bg-indigo-700 shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 transition active:scale-95"
-        >
-          Accept
-        </button>
+      <div className="mt-6 flex justify-between items-center">
+
+        <h3 className="text-2xl font-bold text-blue-600">
+
+          ₹{booking.estimatedPrice}
+
+        </h3>
+
+        <div className="flex gap-3">
+
+          <button
+            onClick={() => onReject(booking.bookingId)}
+            className="rounded-xl border border-red-500 px-4 py-2 text-red-500 hover:bg-red-50"
+          >
+            Reject
+          </button>
+
+          <button
+            onClick={() => onAccept(booking.bookingId)}
+            className="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
+          >
+            Accept
+          </button>
+
+        </div>
+
       </div>
+
     </div>
   );
 }

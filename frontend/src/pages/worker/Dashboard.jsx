@@ -1,4 +1,10 @@
 import { useEffect, useState } from "react";
+import {
+  Briefcase,
+  IndianRupee,
+  Clock,
+  Star,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import DashboardHeader from "../../components/customer/DashboardHeader";
 import DashboardStats from "../../components/worker/DashboardStats";
@@ -6,25 +12,31 @@ import RequestCard from "../../components/worker/RequestCard";
 import RecentJobCard from "../../components/worker/RecentJobCard";
 import AvailabilityToggle from "../../components/worker/AvailabilityToggle";
 import EarningsCard from "../../components/worker/EarningsCard";
-import { getWorkerDashboard, updateAvailability, acceptBooking, rejectBooking } from "../../services/bookingService";
-import { Briefcase, ShieldAlert, DollarSign, Star } from "lucide-react";
+
+import {
+  getWorkerBookings,
+  acceptBooking,
+  rejectBooking,
+  updateAvailability,
+} from "../../services/bookingService";
 
 export default function WorkerDashboard() {
   const { user } = useAuth();
-  const [data, setData] = useState(null);
+  const [bookings, setBookings] = useState([]);
+  const [available, setAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [toggleLoading, setToggleLoading] = useState(false);
 
   useEffect(() => {
-    loadDashboard();
+    loadDashboardData();
   }, []);
 
-  const loadDashboard = async () => {
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const dashboardData = await getWorkerDashboard();
-      setData(dashboardData);
+      const data = await getWorkerBookings();
+      setBookings(data);
     } catch (err) {
       console.error(err);
       setError("Failed to load dashboard data.");
@@ -37,7 +49,7 @@ export default function WorkerDashboard() {
     try {
       setToggleLoading(true);
       const res = await updateAvailability(newVal);
-      setData(prev => prev ? { ...prev, available: res.available } : null);
+      setAvailable(res.available);
     } catch (err) {
       console.error(err);
       alert("Failed to toggle availability status.");
@@ -49,7 +61,7 @@ export default function WorkerDashboard() {
   const handleAccept = async (id) => {
     try {
       await acceptBooking(id);
-      await loadDashboard();
+      await loadDashboardData();
     } catch (err) {
       console.error(err);
       alert("Failed to accept booking.");
@@ -59,28 +71,14 @@ export default function WorkerDashboard() {
   const handleReject = async (id) => {
     try {
       await rejectBooking(id);
-      await loadDashboard();
+      await loadDashboardData();
     } catch (err) {
       console.error(err);
       alert("Failed to reject booking.");
     }
   };
 
-  const calculateMonthEarnings = (recentBookings) => {
-    if (!recentBookings) return 0;
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth(); // 0-11
-    
-    return recentBookings
-      .filter((b) => {
-        if (b.status !== "COMPLETED" || !b.bookingDate) return false;
-        const bDate = new Date(b.bookingDate);
-        return bDate.getFullYear() === currentYear && bDate.getMonth() === currentMonth;
-      })
-      .reduce((sum, b) => sum + (b.finalPrice || b.estimatedPrice || 0), 0);
-  };
-
-  if (loading && !data) {
+  if (loading && bookings.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50">
         <DashboardHeader />
@@ -104,9 +102,26 @@ export default function WorkerDashboard() {
     );
   }
 
-  const incomingRequests = data?.recentBookings?.filter(b => b.status === "PENDING") || [];
-  const recentJobs = data?.recentBookings?.filter(b => b.status === "COMPLETED").slice(0, 5) || [];
-  const monthEarnings = calculateMonthEarnings(data?.recentBookings);
+  const todayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  const currentMonthPrefix = todayStr.substring(0, 7); // YYYY-MM
+
+  // Stats Calculations
+  const pendingRequests = bookings.filter((b) => b.status === "PENDING");
+  const todayJobs = bookings.filter((b) => 
+    (b.status === "ACCEPTED" || b.status === "IN_PROGRESS" || b.status === "COMPLETED") &&
+    b.bookingDate === todayStr
+  );
+  const completedJobs = bookings.filter((b) => b.status === "COMPLETED");
+
+  const todayEarnings = completedJobs
+    .filter((b) => b.bookingDate === todayStr)
+    .reduce((sum, b) => sum + (b.finalPrice || b.estimatedPrice || 0), 0);
+
+  const monthEarnings = completedJobs
+    .filter((b) => b.bookingDate?.startsWith(currentMonthPrefix))
+    .reduce((sum, b) => sum + (b.finalPrice || b.estimatedPrice || 0), 0);
+
+  const recentJobs = completedJobs.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -125,7 +140,7 @@ export default function WorkerDashboard() {
             </p>
           </div>
           <AvailabilityToggle
-            available={data?.available ?? true}
+            available={available}
             onToggle={handleToggleAvailability}
             disabled={toggleLoading}
           />
@@ -135,23 +150,27 @@ export default function WorkerDashboard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <DashboardStats
             title="Today's Jobs"
-            value={data?.todayJobs || 0}
-            icon={<Briefcase size={20} />}
+            value={todayJobs.length}
+            icon={<Briefcase size={24} />}
+            color="text-blue-600"
           />
           <DashboardStats
             title="Pending Jobs"
-            value={data?.pendingRequests || 0}
-            icon={<ShieldAlert size={20} />}
+            value={pendingRequests.length}
+            icon={<Clock size={24} />}
+            color="text-amber-500"
           />
           <DashboardStats
             title="Earnings"
-            value={`₹${data?.todayEarnings || 0}`}
-            icon={<DollarSign size={20} />}
+            value={`₹${todayEarnings}`}
+            icon={<IndianRupee size={24} />}
+            color="text-emerald-600"
           />
           <DashboardStats
             title="Rating"
-            value={`⭐${data?.rating || "4.9"}`}
-            icon={<Star size={20} className="fill-amber-400 text-amber-400" />}
+            value="⭐4.9"
+            icon={<Star size={24} />}
+            color="text-amber-400"
           />
         </div>
 
@@ -165,17 +184,17 @@ export default function WorkerDashboard() {
                 Incoming Requests
               </h2>
               <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold">
-                {incomingRequests.length} Pending
+                {pendingRequests.length} Pending
               </span>
             </div>
 
-            {incomingRequests.length === 0 ? (
+            {pendingRequests.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-gray-200">
                 <p className="text-gray-400 font-medium">No pending requests at the moment.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {incomingRequests.map((booking) => (
+              <div className="space-y-4">
+                {pendingRequests.map((booking) => (
                   <RequestCard
                     key={booking.bookingId}
                     booking={booking}
@@ -190,7 +209,7 @@ export default function WorkerDashboard() {
           {/* Sidebar Panel */}
           <div className="space-y-8">
             <EarningsCard 
-              todayEarnings={data?.todayEarnings}
+              todayEarnings={todayEarnings}
               monthEarnings={monthEarnings}
             />
 
