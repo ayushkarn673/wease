@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import DashboardStats from "../../components/worker/DashboardStats";
+import RequestCard from "../../components/worker/RequestCard";
 import { getWorkerDashboard } from "../../services/dashboardService";
 
 export default function Dashboard() {
@@ -41,17 +42,24 @@ export default function Dashboard() {
       0
     );
 
+  const pendingBookings = bookings.filter(
+    booking => booking.status === "PENDING"
+  );
+
+  const recentJobs = bookings
+    .filter(b => b.status === "COMPLETED")
+    .slice(0, 5);
+
   return (
 
-    <div className="p-8">
+    <div className="p-8 max-w-6xl mx-auto">
 
       <h1 className="text-4xl font-bold mb-8">
-
         Worker Dashboard
-
       </h1>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+      {/* Statistics */}
+      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
 
         <DashboardStats
           title="Pending Requests"
@@ -68,7 +76,7 @@ export default function Dashboard() {
         />
 
         <DashboardStats
-          title="Today's Jobs"
+          title="Total Jobs"
           value={bookings.length}
           icon={<Briefcase />}
         />
@@ -81,6 +89,80 @@ export default function Dashboard() {
         />
 
       </div>
+
+      {/* Incoming Requests */}
+      <div className="mb-10">
+
+        <h2 className="text-2xl font-bold mb-6">
+          Incoming Requests
+        </h2>
+
+        {pendingBookings.length === 0 ? (
+
+          <div className="rounded-3xl bg-white border border-dashed border-slate-200 p-12 text-center">
+            <p className="text-4xl mb-4">📭</p>
+            <h3 className="text-xl font-semibold text-slate-700">
+              No pending requests.
+            </h3>
+            <p className="text-slate-400 mt-2">
+              You're all caught up!
+            </p>
+          </div>
+
+        ) : (
+
+          <div className="space-y-4">
+            {pendingBookings.map(booking => (
+              <RequestCard
+                key={booking.bookingId}
+                booking={booking}
+                onUpdate={loadDashboard}
+              />
+            ))}
+          </div>
+
+        )}
+
+      </div>
+
+      {/* Recent Jobs */}
+      {recentJobs.length > 0 && (
+
+        <div>
+
+          <h2 className="text-2xl font-bold mb-6">
+            Recent Jobs
+          </h2>
+
+          <div className="space-y-4">
+            {recentJobs.map(booking => (
+              <div
+                key={booking.bookingId}
+                className="rounded-3xl bg-white p-5 shadow-sm border border-slate-100 flex justify-between items-center"
+              >
+                <div>
+                  <h3 className="font-bold text-gray-800">
+                    {booking.customerName}
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-0.5">
+                    📅 {booking.bookingDate} &nbsp;•&nbsp; 📍 {booking.serviceAddress}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                    COMPLETED
+                  </span>
+                  <p className="text-lg font-black text-gray-800 mt-1">
+                    ₹{booking.finalPrice || booking.estimatedPrice}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+      )}
 
     </div>
 
