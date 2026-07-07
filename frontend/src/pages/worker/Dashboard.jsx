@@ -5,8 +5,9 @@ import DashboardStats from "../../components/worker/DashboardStats";
 import RequestCard from "../../components/worker/RequestCard";
 import RecentJobCard from "../../components/worker/RecentJobCard";
 import AvailabilityToggle from "../../components/worker/AvailabilityToggle";
+import EarningsCard from "../../components/worker/EarningsCard";
 import { getWorkerDashboard, updateAvailability, acceptBooking, rejectBooking } from "../../services/bookingService";
-import { Sparkles, ShieldAlert, TrendingUp, Star } from "lucide-react";
+import { Briefcase, ShieldAlert, DollarSign, Star } from "lucide-react";
 
 export default function WorkerDashboard() {
   const { user } = useAuth();
@@ -65,11 +66,18 @@ export default function WorkerDashboard() {
     }
   };
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
+  const calculateMonthEarnings = (recentBookings) => {
+    if (!recentBookings) return 0;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth(); // 0-11
+    
+    return recentBookings
+      .filter((b) => {
+        if (b.status !== "COMPLETED" || !b.bookingDate) return false;
+        const bDate = new Date(b.bookingDate);
+        return bDate.getFullYear() === currentYear && bDate.getMonth() === currentMonth;
+      })
+      .reduce((sum, b) => sum + (b.finalPrice || b.estimatedPrice || 0), 0);
   };
 
   if (loading && !data) {
@@ -98,6 +106,7 @@ export default function WorkerDashboard() {
 
   const incomingRequests = data?.recentBookings?.filter(b => b.status === "PENDING") || [];
   const recentJobs = data?.recentBookings?.filter(b => b.status === "COMPLETED").slice(0, 5) || [];
+  const monthEarnings = calculateMonthEarnings(data?.recentBookings);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -109,7 +118,7 @@ export default function WorkerDashboard() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
           <div>
             <h1 className="text-3xl font-black text-gray-800">
-              👋 {getGreeting()} {user?.fullName || "Worker"}
+              👋 Welcome {user?.fullName || "Worker"}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               Here is your daily summary and schedule details.
@@ -125,19 +134,19 @@ export default function WorkerDashboard() {
         {/* Dashboard Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <DashboardStats
-            title="Today's Earnings"
-            value={`₹${data?.todayEarnings || 0}`}
-            icon={<TrendingUp size={20} />}
-          />
-          <DashboardStats
             title="Today's Jobs"
             value={data?.todayJobs || 0}
-            icon={<Sparkles size={20} />}
+            icon={<Briefcase size={20} />}
           />
           <DashboardStats
-            title="Pending Requests"
+            title="Pending Jobs"
             value={data?.pendingRequests || 0}
             icon={<ShieldAlert size={20} />}
+          />
+          <DashboardStats
+            title="Earnings"
+            value={`₹${data?.todayEarnings || 0}`}
+            icon={<DollarSign size={20} />}
           />
           <DashboardStats
             title="Rating"
@@ -178,26 +187,33 @@ export default function WorkerDashboard() {
             )}
           </div>
 
-          {/* Recent Jobs */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-800">
-              Recent Jobs
-            </h2>
+          {/* Sidebar Panel */}
+          <div className="space-y-8">
+            <EarningsCard 
+              todayEarnings={data?.todayEarnings}
+              monthEarnings={monthEarnings}
+            />
 
-            {recentJobs.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-gray-200">
-                <p className="text-gray-400 font-medium">No completed jobs yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentJobs.map((booking) => (
-                  <RecentJobCard
-                    key={booking.bookingId}
-                    booking={booking}
-                  />
-                ))}
-              </div>
-            )}
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-800">
+                Recent Jobs
+              </h2>
+
+              {recentJobs.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-gray-200">
+                  <p className="text-gray-400 font-medium">No completed jobs yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentJobs.map((booking) => (
+                    <RecentJobCard
+                      key={booking.bookingId}
+                      booking={booking}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
