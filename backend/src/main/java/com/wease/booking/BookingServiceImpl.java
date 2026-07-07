@@ -151,6 +151,7 @@ public class BookingServiceImpl implements BookingService {
                 .estimatedPrice(booking.getEstimatedPrice())
                 .status(booking.getStatus())
                 .finalPrice(booking.getFinalPrice())
+                .description(booking.getDescription())
                 .build();
     }
 }

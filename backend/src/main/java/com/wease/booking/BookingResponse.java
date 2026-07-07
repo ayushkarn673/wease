@@ -30,4 +30,6 @@ public class BookingResponse {
     private BookingStatus status;
 
     private Double finalPrice;
+
+    private String description;
 }
