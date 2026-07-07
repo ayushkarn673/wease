@@ -61,65 +61,82 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponse> getWorkerBookings(String workerEmail) {
-        User workerUser = userRepository.findByEmail(workerEmail)
-                .orElseThrow(() -> new RuntimeException("Worker user not found."));
+        User worker = userRepository.findByEmail(workerEmail)
+                .orElseThrow(() -> new RuntimeException("Worker not found"));
 
-        WorkerProfile workerProfile = workerProfileRepository.findByUser(workerUser)
-                .orElseThrow(() -> new RuntimeException("Worker profile not found."));
+        WorkerProfile profile = workerProfileRepository
+                .findByUser(worker)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
 
-        return bookingRepository.findByWorkerProfile(workerProfile).stream()
+        return bookingRepository.findByWorkerProfile(profile)
+                .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Override
     public BookingResponse acceptBooking(Long bookingId, String workerEmail) {
-        Booking booking = getVerifiedBookingForWorker(bookingId, workerEmail);
+        User worker = userRepository.findByEmail(workerEmail)
+                .orElseThrow(() -> new RuntimeException("Worker not found"));
+
+        WorkerProfile profile = workerProfileRepository
+                .findByUser(worker)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+
+        Booking booking = bookingRepository
+                .findByIdAndWorkerProfile(bookingId, profile)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
         if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new RuntimeException("Can only accept PENDING bookings.");
+            throw new RuntimeException("Booking cannot be accepted.");
         }
+
         booking.setStatus(BookingStatus.ACCEPTED);
         bookingRepository.save(booking);
+
         return toResponse(booking);
     }
 
     @Override
     public BookingResponse rejectBooking(Long bookingId, String workerEmail) {
-        Booking booking = getVerifiedBookingForWorker(bookingId, workerEmail);
-        if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new RuntimeException("Can only reject PENDING bookings.");
-        }
+        User worker = userRepository.findByEmail(workerEmail)
+                .orElseThrow(() -> new RuntimeException("Worker not found"));
+
+        WorkerProfile profile = workerProfileRepository
+                .findByUser(worker)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+
+        Booking booking = bookingRepository
+                .findByIdAndWorkerProfile(bookingId, profile)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
         booking.setStatus(BookingStatus.REJECTED);
         bookingRepository.save(booking);
+
         return toResponse(booking);
     }
 
     @Override
     public BookingResponse completeBooking(Long bookingId, String workerEmail) {
-        Booking booking = getVerifiedBookingForWorker(bookingId, workerEmail);
-        if (booking.getStatus() != BookingStatus.ACCEPTED && booking.getStatus() != BookingStatus.IN_PROGRESS) {
-            throw new RuntimeException("Can only complete ACCEPTED or IN_PROGRESS bookings.");
-        }
+        User worker = userRepository.findByEmail(workerEmail)
+                .orElseThrow(() -> new RuntimeException("Worker not found"));
+
+        WorkerProfile profile = workerProfileRepository
+                .findByUser(worker)
+                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+
+        Booking booking = bookingRepository
+                .findByIdAndWorkerProfile(bookingId, profile)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
         booking.setStatus(BookingStatus.COMPLETED);
-        bookingRepository.save(booking);
-        return toResponse(booking);
-    }
-
-    private Booking getVerifiedBookingForWorker(Long bookingId, String workerEmail) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new RuntimeException("Booking not found."));
-
-        User workerUser = userRepository.findByEmail(workerEmail)
-                .orElseThrow(() -> new RuntimeException("Worker user not found."));
-
-        WorkerProfile workerProfile = workerProfileRepository.findByUser(workerUser)
-                .orElseThrow(() -> new RuntimeException("Worker profile not found."));
-
-        if (!booking.getWorkerProfile().getId().equals(workerProfile.getId())) {
-            throw new com.wease.core.exception.AccessDeniedException("You do not have access to this booking.");
+        // Default finalPrice to estimatedPrice upon completion if not already specified
+        if (booking.getFinalPrice() == null) {
+            booking.setFinalPrice(booking.getEstimatedPrice());
         }
+        bookingRepository.save(booking);
 
-        return booking;
+        return toResponse(booking);
     }
 
     private BookingResponse toResponse(Booking booking) {

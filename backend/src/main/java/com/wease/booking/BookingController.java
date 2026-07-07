@@ -28,12 +28,12 @@ public class BookingController {
     }
 
     @GetMapping("/worker")
-    public List<BookingResponse> getWorkerBookings(Authentication authentication) {
+    public List<BookingResponse> workerBookings(Authentication authentication) {
         return bookingService.getWorkerBookings(authentication.getName());
     }
 
     @PutMapping("/{id}/accept")
-    public BookingResponse acceptBooking(
+    public BookingResponse accept(
             @PathVariable Long id,
             Authentication authentication
     ) {
@@ -41,7 +41,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/reject")
-    public BookingResponse rejectBooking(
+    public BookingResponse reject(
             @PathVariable Long id,
             Authentication authentication
     ) {
@@ -49,7 +49,7 @@ public class BookingController {
     }
 
     @PutMapping("/{id}/complete")
-    public BookingResponse completeBooking(
+    public BookingResponse complete(
             @PathVariable Long id,
             Authentication authentication
     ) {
