@@ -1,6 +1,7 @@
 package com.wease.booking;
 
 import com.wease.user.User;
+import com.wease.user.Role;
 import com.wease.user.UserRepository;
 import com.wease.worker.WorkerProfile;
 import com.wease.worker.WorkerProfileRepository;
@@ -22,8 +23,16 @@ public class BookingServiceImpl implements BookingService {
         User customer = userRepository.findByEmail(customerEmail)
                 .orElseThrow(() -> new RuntimeException("Customer not found."));
 
+        if (customer.getRole() != Role.CUSTOMER) {
+            throw new RuntimeException("Only customers can create bookings.");
+        }
+
         WorkerProfile workerProfile = workerProfileRepository.findById(request.getWorkerProfileId())
                 .orElseThrow(() -> new RuntimeException("Worker profile not found."));
+
+        if (!workerProfile.getAvailable()) {
+            throw new RuntimeException("Worker is currently unavailable.");
+        }
 
         Booking booking = Booking.builder()
                 .customer(customer)
@@ -124,6 +133,7 @@ public class BookingServiceImpl implements BookingService {
                 .serviceAddress(booking.getServiceAddress())
                 .estimatedPrice(booking.getEstimatedPrice())
                 .status(booking.getStatus())
+                .finalPrice(booking.getFinalPrice())
                 .build();
     }
 }

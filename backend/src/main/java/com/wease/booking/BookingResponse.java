@@ -28,4 +28,6 @@ public class BookingResponse {
     private Double estimatedPrice;
 
     private BookingStatus status;
+
+    private Double finalPrice;
 }

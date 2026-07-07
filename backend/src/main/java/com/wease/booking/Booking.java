@@ -50,4 +50,6 @@ public class Booking extends BaseEntity {
 
     @Column(nullable = false)
     private Double estimatedPrice;
+
+    private Double finalPrice;
 }
