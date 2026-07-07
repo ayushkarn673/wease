@@ -39,3 +39,8 @@ export const updateAvailability = async (available) => {
     const response = await api.put("/workers/availability", { available });
     return response.data;
 };
+
+export const getBookingDetails = async (id) => {
+    const response = await api.get(`/bookings/${id}`);
+    return response.data;
+};

@@ -15,7 +15,7 @@ import MyBookings from "../pages/customer/MyBookings";
 import WorkerDashboard from "../pages/worker/Dashboard";
 import AdminDashboard from "../pages/admin/Dashboard";
 import Profile from "../pages/Profile";
-import BookingDetails from "../pages/BookingDetails";
+import BookingDetails from "../pages/customer/BookingDetails";
 import DashboardLayout from "../layouts/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import RoleRoute from "./RoleRoute";
