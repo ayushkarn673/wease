@@ -30,10 +30,6 @@ export const completeBooking = async (id) => {
     return response.data;
 };
 
-export const getWorkerDashboard = async () => {
-    const response = await api.get("/workers/dashboard");
-    return response.data;
-};
 
 export const updateAvailability = async (available) => {
     const response = await api.put("/workers/availability", { available });

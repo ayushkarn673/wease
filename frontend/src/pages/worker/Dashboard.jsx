@@ -82,7 +82,7 @@ export default function Dashboard() {
         />
 
         <DashboardStats
-          title="Earnings"
+          title="Total Earnings"
           value={`₹${earnings}`}
           icon={<IndianRupee />}
           color="text-green-700"
