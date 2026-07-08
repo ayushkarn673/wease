@@ -8,6 +8,7 @@ import {
 
 import DashboardStats from "../../components/worker/DashboardStats";
 import RequestCard from "../../components/worker/RequestCard";
+import JobCard from "../../components/worker/JobCard";
 import { getWorkerDashboard } from "../../services/dashboardService";
 
 export default function Dashboard() {
@@ -46,9 +47,15 @@ export default function Dashboard() {
     booking => booking.status === "PENDING"
   );
 
-  const recentJobs = bookings
-    .filter(b => b.status === "COMPLETED")
-    .slice(0, 5);
+  const acceptedBookings = bookings.filter(
+    booking => booking.status === "ACCEPTED"
+  );
+
+  const completedBookings = bookings.filter(
+    booking => booking.status === "COMPLETED"
+  );
+
+  const recentJobs = completedBookings.slice(0, 5);
 
   return (
 
@@ -123,6 +130,30 @@ export default function Dashboard() {
 
         )}
 
+      </div>
+
+      {/* Accepted Jobs */}
+      <div className="mb-10">
+          <h2 className="text-2xl font-bold mb-6">
+              Accepted Jobs
+          </h2>
+          {acceptedBookings.length === 0 ? (
+              <div className="rounded-3xl border border-dashed p-8 text-center bg-white">
+                  <p className="text-gray-500">
+                      No accepted jobs.
+                  </p>
+              </div>
+          ) : (
+              <div className="space-y-4">
+                  {acceptedBookings.map((booking)=>(
+                      <JobCard
+                          key={booking.bookingId}
+                          booking={booking}
+                          onUpdate={loadDashboard}
+                      />
+                  ))}
+              </div>
+          )}
       </div>
 
       {/* Recent Jobs */}
