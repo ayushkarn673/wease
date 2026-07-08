@@ -9,6 +9,7 @@ import {
 import DashboardStats from "../../components/worker/DashboardStats";
 import RequestCard from "../../components/worker/RequestCard";
 import JobCard from "../../components/worker/JobCard";
+import AvailabilityToggle from "../../components/worker/AvailabilityToggle";
 import { getWorkerDashboard } from "../../services/dashboardService";
 
 export default function Dashboard() {
@@ -61,9 +62,23 @@ export default function Dashboard() {
 
     <div className="p-8 max-w-6xl mx-auto">
 
-      <h1 className="text-4xl font-bold mb-8">
-        Worker Dashboard
-      </h1>
+      <div className="flex justify-between items-center mb-8">
+
+          <h1 className="text-4xl font-bold">
+
+              Worker Dashboard
+
+          </h1>
+
+          <AvailabilityToggle
+
+              available={true}
+
+              onUpdate={loadDashboard}
+
+          />
+
+      </div>
 
       {/* Statistics */}
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
