@@ -1,18 +1,46 @@
 package com.wease.user;
 
-
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
+@RequiredArgsConstructor
 public class UserController {
 
+    private final UserService userService;
+
     @GetMapping("/profile")
-    public User profile(Authentication authentication) {
-        return (User) authentication.getPrincipal();
+    public UserResponse profile(
+            Authentication authentication
+    ) {
+
+        return userService.getProfile(
+                authentication.getName()
+        );
+
+    }
+
+    @PutMapping("/profile")
+    public UserResponse updateProfile(
+
+            @Valid
+            @RequestBody
+            UpdateUserRequest request,
+
+            Authentication authentication
+
+    ) {
+
+        return userService.updateProfile(
+
+                request,
+                authentication.getName()
+
+        );
+
     }
 
 }
