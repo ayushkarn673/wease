@@ -1,126 +1,100 @@
-import { ArrowRight, CheckCircle, Star } from "lucide-react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { BadgeIndianRupee, CalendarCheck2, CheckCircle2, ListChecks } from "lucide-react";
+import { PROFESSIONS } from "@/lib/format";
+import { MARKETING_PHOTOS, unsplashUrl } from "@/lib/media";
+import SearchCard from "./SearchCard";
+
+const POPULAR = ["ELECTRICIAN", "PLUMBER", "PAINTER", "CLEANER"];
+
+const VALUE_PROPS = [
+  { icon: BadgeIndianRupee, title: "Upfront pricing", text: "See the visiting charge before you book" },
+  { icon: CalendarCheck2, title: "Your schedule", text: "Choose the date and time that suits you" },
+  { icon: ListChecks, title: "Clear tracking", text: "Follow every job from request to done" },
+];
 
 export default function Hero() {
-  const navigate = useNavigate();
-
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20 pt-32 pb-24">
-      {/* Background Blur */}
-      <div className="absolute -top-20 -left-20 h-72 w-72 rounded-full bg-blue-200/40 dark:bg-blue-900/10 blur-3xl opacity-30"></div>
-      <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-cyan-200/40 dark:bg-cyan-900/10 blur-3xl opacity-30"></div>
-
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-16 px-6 lg:flex-row">
-        {/* Left */}
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7 }}
-          className="flex-1"
-        >
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2 shadow-sm">
-            <CheckCircle className="h-4 w-4 text-green-650 dark:text-green-500" />
-            <span className="text-sm font-medium text-slate-800 dark:text-slate-350">
-              Trusted by 15,000+ customers
-            </span>
-          </div>
-
-          <h1 className="text-5xl font-extrabold leading-tight text-slate-900 dark:text-white lg:text-7xl tracking-tight">
-            Find Trusted
-            <br />
-            <span className="text-blue-600 dark:text-blue-400">Workers</span>
-            <br />
-            Near You.
+    <section className="bg-white">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-12 pt-10 sm:px-6 sm:pt-16 lg:grid-cols-[1.1fr_1fr] lg:pb-20">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+          <p className="text-sm font-semibold text-brand-700">Home services in your city</p>
+          <h1 className="mt-3 text-4xl font-bold leading-[1.1] tracking-tight text-neutral-900 sm:text-5xl lg:text-[3.4rem]">
+            Skilled professionals for every job around your home
           </h1>
-
-          <p className="mt-6 max-w-xl text-lg leading-8 text-slate-655 dark:text-slate-400">
-            Book verified carpenters, painters, electricians, plumbers,
-            cleaners and skilled workers within minutes.
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-neutral-600">
+            Compare experienced electricians, plumbers, carpenters and more — then book a visit at a time that works
+            for you.
           </p>
 
-          <div className="mt-10 flex flex-wrap gap-4">
-            <button 
-              onClick={() => navigate("/register")}
-              className="flex items-center gap-2 rounded-2xl bg-blue-600 px-7 py-4 font-semibold text-white transition hover:scale-105 hover:bg-blue-700 shadow-md shadow-blue-600/10"
-            >
-              Find Worker
-              <ArrowRight size={18} />
-            </button>
-
-            <button 
-              onClick={() => navigate("/register")}
-              className="rounded-2xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 px-7 py-4 font-semibold text-slate-800 dark:text-slate-300 transition hover:border-blue-600 hover:text-blue-600 dark:hover:border-blue-400 dark:hover:text-blue-400"
-            >
-              Become a Worker
-            </button>
+          <div className="mt-8 max-w-2xl">
+            <SearchCard />
           </div>
 
-          <div className="mt-12 flex gap-10">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">15K+</h2>
-              <p className="text-slate-500 dark:text-slate-400">Workers</p>
-            </div>
-
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">50K+</h2>
-              <p className="text-slate-500 dark:text-slate-400">Bookings</p>
-            </div>
-
-            <div>
-              <h2 className="flex items-center gap-1 text-3xl font-bold text-slate-900 dark:text-white">
-                4.9
-                <Star className="fill-yellow-400 text-yellow-400" size={22} />
-              </h2>
-              <p className="text-slate-500 dark:text-slate-400">Average Rating</p>
-            </div>
+          <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-neutral-500">Popular:</span>
+            {POPULAR.map((value) => (
+              <Link
+                key={value}
+                to={`/workers?profession=${value}`}
+                className="rounded-full border border-neutral-200 px-3 py-1 font-medium text-neutral-700 transition hover:border-brand-300 hover:text-brand-700"
+              >
+                {PROFESSIONS.find((p) => p.value === value).label}
+              </Link>
+            ))}
           </div>
         </motion.div>
 
-        {/* Right */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7 }}
-          className="relative flex flex-1 justify-center"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1 }}
+          className="relative hidden lg:block"
         >
-          {/* Main Card */}
-          <div className="w-full max-w-md rounded-[32px] bg-white dark:bg-slate-900 p-8 shadow-2xl shadow-slate-100/50 dark:shadow-none border border-slate-100 dark:border-slate-800/80">
+          <div className="grid grid-cols-2 gap-4">
             <img
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=700"
-              alt="Worker"
-              className="h-72 w-full rounded-3xl object-cover"
+              src={unsplashUrl(MARKETING_PHOTOS.painting, 700)}
+              alt="Painter rolling fresh paint onto a wall"
+              className="row-span-2 h-[26rem] w-full rounded-3xl object-cover"
             />
+            <img
+              src={unsplashUrl(MARKETING_PHOTOS.electrician, 500)}
+              alt="Electrician installing wiring"
+              className="h-[12.5rem] w-full rounded-3xl object-cover"
+            />
+            <img
+              src={unsplashUrl(MARKETING_PHOTOS.cleaning, 500)}
+              alt="Cleaner mopping a living room floor"
+              className="h-[12.5rem] w-full rounded-3xl object-cover"
+            />
+          </div>
+          {/* A sample of the booking status UI customers see — illustrative, not a real booking. */}
+          <div className="absolute -bottom-6 -left-8 flex items-center gap-3 rounded-2xl bg-white p-4 pr-6 shadow-xl shadow-neutral-900/10 ring-1 ring-neutral-900/5">
+            <span className="flex size-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+              <CheckCircle2 className="size-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-neutral-900">Booking confirmed</p>
+              <p className="text-xs text-neutral-500">Your professional accepted the request</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
 
-            <div className="mt-6">
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Rahul Sharma</h3>
-
-              <p className="mt-1 text-slate-500 dark:text-slate-450">
-                Professional Carpenter
-              </p>
-
-              <div className="mt-4 flex items-center justify-between">
-                <span className="rounded-full bg-green-100 dark:bg-green-950 px-3 py-1 text-sm font-semibold text-green-700 dark:text-green-400">
-                  Verified
-                </span>
-
-                <span className="font-bold text-blue-650 dark:text-blue-400">
-                  ₹499 / Visit
-                </span>
+      <div className="border-y border-neutral-200 bg-neutral-50/60">
+        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:grid-cols-3 sm:px-6">
+          {VALUE_PROPS.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="flex items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-700 ring-1 ring-neutral-200">
+                <Icon className="size-5" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-neutral-900">{title}</p>
+                <p className="text-sm text-neutral-500">{text}</p>
               </div>
             </div>
-          </div>
-
-          {/* Floating Rating */}
-          <div className="absolute -left-5 top-10 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-5 py-3 shadow-xl dark:shadow-none text-slate-855 dark:text-slate-200 font-semibold flex items-center gap-1">
-            ⭐ 4.9 Rating
-          </div>
-
-          {/* Floating Badge */}
-          <div className="absolute -right-6 bottom-12 rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-xl shadow-blue-600/10">
-            Available Now
-          </div>
-        </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );

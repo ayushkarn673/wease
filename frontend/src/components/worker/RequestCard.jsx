@@ -1,144 +1,87 @@
 import { useState } from "react";
-import {
-  acceptBooking,
-  rejectBooking,
-} from "../../services/bookingService";
+import { toast } from "sonner";
+import { CalendarDays, Check, Clock, Loader2, MapPin, X } from "lucide-react";
+import { acceptBooking, rejectBooking } from "../../services/bookingService";
+import { formatVisitCharge, formatDate, formatTime, getErrorMessage } from "@/lib/format";
+import UserAvatar from "../shared/UserAvatar";
 
-export default function RequestCard({
-  booking,
-  onUpdate,
-}) {
+// A new booking request the worker can accept or decline.
+export default function RequestCard({ booking, onUpdate }) {
+  const [pending, setPending] = useState(null); // "accept" | "reject" | null
 
-  const [loading,setLoading]=useState(false);
-
-  async function handleAccept(){
-
-      setLoading(true);
-
-      try{
-
-          await acceptBooking(
-              booking.bookingId
-          );
-
-          onUpdate();
-
-      }catch(err){
-
-          console.error(err);
-
-      }finally{
-
-          setLoading(false);
-
+  async function act(kind) {
+    setPending(kind);
+    try {
+      if (kind === "accept") {
+        await acceptBooking(booking.bookingId);
+        toast.success("Booking accepted", { description: `${booking.customerName} will see it confirmed on their bookings page.` });
+      } else {
+        await rejectBooking(booking.bookingId);
+        toast("Request declined");
       }
-
+      onUpdate();
+    } catch (err) {
+      toast.error("Couldn't update the request", { description: getErrorMessage(err) });
+    } finally {
+      setPending(null);
+    }
   }
 
-  async function handleReject(){
-
-      setLoading(true);
-
-      try{
-
-          await rejectBooking(
-              booking.bookingId
-          );
-
-          onUpdate();
-
-      }catch(err){
-
-          console.error(err);
-
-      }finally{
-
-          setLoading(false);
-
-      }
-
-  }
-
-  return(
-
-      <div className="rounded-3xl bg-white p-6 shadow border">
-
-          <div className="flex justify-between">
-
-              <div>
-
-                  <h2 className="text-xl font-bold">
-
-                      {booking.customerName}
-
-                  </h2>
-
-                  <p className="text-slate-500">
-
-                      {booking.profession}
-
-                  </p>
-
-              </div>
-
-              <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700">
-
-                  {booking.status}
-
-              </span>
-
+  return (
+    <article className="rounded-2xl border border-neutral-200/80 bg-white p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <UserAvatar name={booking.customerName} />
+          <div>
+            <p className="font-semibold text-neutral-900">{booking.customerName}</p>
+            <p className="text-sm text-neutral-500">New request</p>
           </div>
-
-          <div className="mt-5 space-y-2">
-
-              <p>📅 {booking.bookingDate}</p>
-
-              <p>🕒 {booking.bookingTime}</p>
-
-              <p>📍 {booking.serviceAddress}</p>
-
-              <p>
-
-                  ₹{booking.estimatedPrice}
-
-              </p>
-
-          </div>
-
-          <div className="mt-6 flex gap-3 justify-end">
-
-              <button
-
-                  disabled={loading}
-
-                  onClick={handleReject}
-
-                  className="px-4 py-2 rounded-xl border border-red-500 text-red-500 disabled:opacity-50"
-
-              >
-
-                  Reject
-
-              </button>
-
-              <button
-
-                  disabled={loading}
-
-                  onClick={handleAccept}
-
-                  className="px-4 py-2 rounded-xl bg-blue-600 text-white disabled:opacity-50"
-
-              >
-
-                  {loading ? "Processing..." : "Accept"}
-
-              </button>
-
-          </div>
-
+        </div>
+        <p className="text-right">
+          <span className="block text-xs text-neutral-500">Visiting charge</span>
+          <span className="font-semibold text-neutral-900">{formatVisitCharge(booking.bill?.visitingCharge)}</span>
+        </p>
       </div>
 
-  );
+      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-neutral-600">
+        <span className="inline-flex items-center gap-1.5">
+          <CalendarDays className="size-4 text-neutral-400" />
+          {formatDate(booking.bookingDate, { weekday: "short", day: "numeric", month: "short" })}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Clock className="size-4 text-neutral-400" />
+          {formatTime(booking.bookingTime)}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <MapPin className="size-4 text-neutral-400" />
+          {booking.serviceAddress}
+        </span>
+      </div>
 
+      {booking.description && (
+        <p className="mt-4 rounded-xl bg-surface p-3.5 text-sm leading-relaxed text-neutral-700">{booking.description}</p>
+      )}
+
+      <div className="mt-5 flex gap-3">
+        <button
+          type="button"
+          onClick={() => act("reject")}
+          disabled={pending !== null}
+          className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 sm:flex-none sm:px-5"
+        >
+          {pending === "reject" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+          Decline
+        </button>
+        <button
+          type="button"
+          onClick={() => act("accept")}
+          disabled={pending !== null}
+          className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60 sm:flex-none sm:px-6"
+        >
+          {pending === "accept" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+          Accept
+        </button>
+      </div>
+    </article>
+  );
 }

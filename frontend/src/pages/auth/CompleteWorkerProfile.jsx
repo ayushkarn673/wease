@@ -1,320 +1,216 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Briefcase, IndianRupee, Star, PenTool, CheckCircle, MapPin } from "lucide-react";
+import { AlertCircle, Briefcase, CheckCircle2, Loader2, MapPin, PenTool } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PROFESSIONS, getErrorMessage } from "@/lib/format";
+import { textareaClassName } from "@/lib/styles";
 import AuthLayout from "../../layouts/AuthLayout";
-import AuthCard from "../../components/auth/AuthCard";
 import AuthInput from "../../components/auth/AuthInput";
-import { Button } from "@/components/ui/Button";
 import { createWorkerProfile } from "../../services/workerService";
-
-const serviceMapping = {
-  "Carpenter": "CARPENTER",
-  "Painter": "PAINTER",
-  "Electrician": "ELECTRICIAN",
-  "Plumber": "PLUMBER",
-  "Cleaner": "CLEANER",
-  "Mason": "MASON",
-  "AC Repair": "AC_TECHNICIAN",
-  "Labour": "LABOURER",
-};
 
 export default function CompleteWorkerProfile() {
   const [step, setStep] = useState(1);
-  const [service, setService] = useState("");
-  const [price, setPrice] = useState("");
+  const [profession, setProfession] = useState("");
   const [experience, setExperience] = useState("");
   const [bio, setBio] = useState("");
   const [skills, setSkills] = useState("");
   const [address, setAddress] = useState("");
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
+  const [coords, setCoords] = useState({ latitude: null, longitude: null });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  const services = [
-    "Carpenter",
-    "Painter",
-    "Electrician",
-    "Plumber",
-    "Cleaner",
-    "Mason",
-    "AC Repair",
-    "Labour",
-  ];
-
+  // Location is optional. If the browser can't provide it we store nothing rather than a guess.
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatitude(position.coords.latitude);
-          setLongitude(position.coords.longitude);
-        },
-        (error) => {
-          console.log("Error obtaining location: ", error);
-          // Default to Pune coordinates
-          setLatitude(18.5204);
-          setLongitude(73.8567);
-        }
-      );
-    } else {
-      // Default to Pune coordinates
-      setLatitude(18.5204);
-      setLongitude(73.8567);
-    }
+    navigator.geolocation?.getCurrentPosition(
+      (position) => setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+      () => {}
+    );
   }, []);
 
-  const handleNextStep = async () => {
-    const newErrors = {};
-
-    if (step === 1) {
-      if (!service) newErrors.service = "Please select a service category";
-      if (!price || isNaN(price) || Number(price) <= 0) {
-        newErrors.price = "Please enter a valid visit rate";
-      }
-      if (!experience || isNaN(experience) || Number(experience) < 0) {
-        newErrors.experience = "Please enter your experience in years";
-      }
-
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
-      }
-      setErrors({});
-      setStep(2);
-      return;
+  const goToDetails = () => {
+    const next = {};
+    if (!profession) next.profession = "Choose the service you offer";
+    if (experience === "" || isNaN(experience) || Number(experience) < 0 || Number(experience) > 50) {
+      next.experience = "Enter your experience in years (0–50)";
     }
+    setErrors(next);
+    if (Object.keys(next).length === 0) setStep(2);
+  };
 
-    if (step === 2) {
-      if (!bio || bio.length < 20) {
-        newErrors.bio = "Please write a bio (minimum 20 characters)";
-      }
-      if (!skills) newErrors.skills = "Please list a few key skills";
-      if (!address) newErrors.address = "Please enter your service address";
+  const submitProfile = async () => {
+    const next = {};
+    if (bio.trim().length < 20) next.bio = "Write at least 20 characters about your work";
+    if (!skills.trim()) next.skills = "List a few key skills";
+    if (!address.trim()) next.address = "Enter the area you serve";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
 
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        return;
-      }
-
-      setErrors({});
-      setIsSubmitting(true);
-
-      try {
-        const professionEnum = serviceMapping[service];
-        await createWorkerProfile({
-          profession: professionEnum,
-          experience: parseInt(experience),
-          bio: `${bio} | Skills: ${skills}`,
-          hourlyRate: parseFloat(price),
-          address,
-          latitude: latitude || 18.5204,
-          longitude: longitude || 73.8567,
-        });
-
-        setStep(3);
-      } catch (error) {
-        console.log(error);
-        console.log("Status:", error.response?.status);
-        console.log("Response:", error.response?.data);
-
-        setErrors({
-          server: JSON.stringify(error.response?.data ?? error.message)
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-      return;
-    }
-
-    if (step === 3) {
-      navigate("/worker/dashboard");
+    setIsSubmitting(true);
+    try {
+      await createWorkerProfile({
+        profession,
+        experience: parseInt(experience, 10),
+        bio: `${bio.trim()} | Skills: ${skills.trim()}`,
+        address: address.trim(),
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      });
+      setStep(3);
+    } catch (error) {
+      setErrors({ server: getErrorMessage(error, "We couldn't save your profile. Please try again.") });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <AuthLayout>
-      <AuthCard>
-        {/* Step Indicator */}
-        <div className="flex gap-2 mb-8">
-          {[1, 2, 3].map((num) => (
-            <div
-              key={num}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                step >= num
-                  ? "bg-blue-600 dark:bg-blue-500"
-                  : "bg-slate-200 dark:bg-slate-800"
-              }`}
-            />
-          ))}
-        </div>
+      <div className="mb-8 flex gap-2" aria-hidden="true">
+        {[1, 2, 3].map((n) => (
+          <span key={n} className={cn("h-1.5 flex-1 rounded-full transition-colors", step >= n ? "bg-brand-600" : "bg-neutral-200")} />
+        ))}
+      </div>
 
-        {step === 1 && (
-          <div>
-            <div className="mb-8">
-              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Profile Setup
-              </h2>
-              <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-455">
-                Let's configure your basic service info.
-              </p>
+      {step === 1 && (
+        <>
+          <p className="text-sm font-medium text-brand-600">Step 1 of 2</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">What do you do?</h1>
+          <p className="mt-2 text-sm text-neutral-500">Customers search by service, so choose the one you're best at.</p>
+
+          <div className="mt-8 space-y-5">
+            <div>
+              <p className="mb-2 text-sm font-medium text-neutral-700">Service</p>
+              <div className="grid grid-cols-2 gap-2">
+                {PROFESSIONS.map(({ value, label, icon: Icon }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setProfession(value)}
+                    aria-pressed={profession === value}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left text-sm font-medium transition",
+                      profession === value
+                        ? "border-brand-600 bg-brand-50/60 text-brand-700 ring-1 ring-brand-600"
+                        : "border-neutral-200 text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50"
+                    )}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {errors.profession && <p className="mt-1.5 text-xs font-medium text-red-600">{errors.profession}</p>}
             </div>
 
-            <div className="space-y-6">
-              {/* Category dropdown */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Service Category
-                </label>
-                <select
-                  value={service}
-                  onChange={(e) => setService(e.target.value)}
-                  className="h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 text-sm font-semibold text-slate-700 dark:text-slate-350 focus:outline-none focus:border-blue-500 transition"
-                >
-                  <option value="">Select Service Category</option>
-                  {services.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-                {errors.service && (
-                  <span className="text-xs text-red-500 font-semibold mt-0.5">
-                    {errors.service}
-                  </span>
-                )}
-              </div>
-
-              {/* Price rate */}
+            <div>
               <AuthInput
-                label="Starting Visit Rate (₹)"
-                type="text"
-                placeholder="499"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                Icon={IndianRupee}
-                error={errors.price}
-              />
-
-              {/* Experience */}
-              <AuthInput
-                label="Years of Experience"
-                type="text"
+                label="Experience (years)"
+                inputMode="numeric"
                 placeholder="5"
                 value={experience}
                 onChange={(e) => setExperience(e.target.value)}
                 Icon={Briefcase}
                 error={errors.experience}
               />
-
-              <Button
-                onClick={handleNextStep}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold mt-4"
-              >
-                Continue
-              </Button>
-            </div>
-          </div>
-        )}        {step === 2 && (
-          <div>
-            <div className="mb-8">
-              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Bio, Address & Skills
-              </h2>
-              <p className="mt-2 text-sm font-semibold text-slate-555 dark:text-slate-455">
-                Describe your expertise and service location.
-              </p>
             </div>
 
-            <div className="space-y-6">
-              {errors.server && (
-                <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
-                  <span className="text-red-500 mt-0.5">⚠</span>
-                  <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{errors.server}</p>
-                </div>
-              )}
-
-              {/* Short Bio */}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  Short Bio / Description
-                </label>
-                <textarea
-                  placeholder="I am a professional painter with over 5 years of experience specializing in interior walls..."
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="h-28 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none focus:border-blue-500 transition resize-none leading-relaxed"
-                />
-                {errors.bio && (
-                  <span className="text-xs text-red-500 font-semibold mt-0.5">
-                    {errors.bio}
-                  </span>
-                )}
-              </div>
-
-              {/* Address input */}
-              <AuthInput
-                label="Service Address"
-                type="text"
-                placeholder="Pune, Maharashtra"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                Icon={MapPin}
-                error={errors.address}
-              />
-
-              {/* Skills input */}
-              <AuthInput
-                label="Key Skills (comma separated)"
-                type="text"
-                placeholder="Wall painting, Texture Art, Wood polish"
-                value={skills}
-                onChange={(e) => setSkills(e.target.value)}
-                Icon={PenTool}
-                error={errors.skills}
-              />
-
-              <div className="flex gap-4 pt-4">
-                <Button
-                  onClick={() => setStep(1)}
-                  variant="outline"
-                  disabled={isSubmitting}
-                  className="flex-1 h-12 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-655 dark:text-slate-300 font-bold"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={handleNextStep}
-                  disabled={isSubmitting}
-                  className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold"
-                >
-                  {isSubmitting ? "Saving..." : "Submit Profile"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md shadow-green-500/10">
-              <CheckCircle size={28} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Profile completed!
-            </h2>
-            <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-455 leading-relaxed">
-              Your professional profile is set up. You can now accept incoming jobs on your dashboard.
-            </p>
-            <Button
-              onClick={handleNextStep}
-              className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold mt-8"
+            <button
+              type="button"
+              onClick={goToDetails}
+              className="h-11 w-full rounded-full bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700"
             >
-              Go to Dashboard
-            </Button>
+              Continue
+            </button>
           </div>
-        )}
-      </AuthCard>
+        </>
+      )}
+
+      {step === 2 && (
+        <>
+          <p className="text-sm font-medium text-brand-600">Step 2 of 2</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Tell customers about you</h1>
+          <p className="mt-2 text-sm text-neutral-500">A clear description helps customers choose you.</p>
+
+          <div className="mt-8 space-y-5">
+            {errors.server && (
+              <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                {errors.server}
+              </div>
+            )}
+
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-neutral-700">About your work</span>
+              <textarea
+                rows={4}
+                maxLength={800}
+                placeholder="e.g. Licensed electrician with 6 years of experience in home wiring, fan and light installation, and switchboard repairs."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className={textareaClassName}
+              />
+              {errors.bio && <span className="mt-1.5 block text-xs font-medium text-red-600">{errors.bio}</span>}
+            </label>
+
+            <AuthInput
+              label="Key skills"
+              placeholder="e.g. Wiring, MCB fitting, Inverter installation"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+              Icon={PenTool}
+              error={errors.skills}
+            />
+            <AuthInput
+              label="Service area"
+              placeholder="e.g. Kothrud, Pune"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              Icon={MapPin}
+              error={errors.address}
+            />
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                disabled={isSubmitting}
+                className="h-11 flex-1 rounded-lg border border-neutral-200 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={submitProfile}
+                disabled={isSubmitting}
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+              >
+                {isSubmitting && <Loader2 className="size-4 animate-spin" />}
+                {isSubmitting ? "Saving…" : "Finish setup"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {step === 3 && (
+        <div className="text-center">
+          <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <CheckCircle2 className="size-7" />
+          </span>
+          <h1 className="mt-6 text-2xl font-bold tracking-tight text-neutral-900">You're all set!</h1>
+          <p className="mt-2 text-sm leading-relaxed text-neutral-500">
+            Your profile is live. Customers can now find you and send booking requests.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate("/worker/dashboard", { replace: true })}
+            className="mt-8 h-11 w-full rounded-full bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700"
+          >
+            Go to dashboard
+          </button>
+        </div>
+      )}
     </AuthLayout>
   );
 }

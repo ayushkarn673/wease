@@ -1,216 +1,180 @@
-import { useEffect, useState } from "react";
-import {
-  Briefcase,
-  Clock,
-  IndianRupee,
-  CheckCircle,
-} from "lucide-react";
-
-import DashboardStats from "../../components/worker/DashboardStats";
+import { useCallback, useMemo } from "react";
+import { useAsync } from "../../hooks/useAsync";
+import { Link } from "react-router-dom";
+import { BriefcaseBusiness, CalendarCheck2, CheckCircle2, Clock, IndianRupee, Inbox, UserRoundPlus } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { getWorkerDashboard } from "../../services/dashboardService";
+import { getWorkerProfile } from "../../services/workerService";
+import { firstName, formatCurrency, formatDate } from "@/lib/format";
+import HeroPanel from "../../components/shared/HeroPanel";
+import SectionHeader from "../../components/shared/SectionHeader";
+import StatCard from "../../components/shared/StatCard";
+import { EmptyState, ErrorState, ListSkeleton, Skeleton } from "../../components/shared/States";
+import AvailabilityToggle from "../../components/worker/AvailabilityToggle";
 import RequestCard from "../../components/worker/RequestCard";
 import JobCard from "../../components/worker/JobCard";
-import AvailabilityToggle from "../../components/worker/AvailabilityToggle";
-import { getWorkerDashboard } from "../../services/dashboardService";
+import PricingSettings from "../../components/worker/PricingSettings";
+import ServiceAreaCard from "../../components/worker/ServiceAreaCard";
+import StatusBadge from "../../components/booking/StatusBadge";
+import { RatingBadge } from "../../components/review/StarRating";
 
-export default function Dashboard() {
+const byDateAsc = (a, b) => `${a.bookingDate}${a.bookingTime}`.localeCompare(`${b.bookingDate}${b.bookingTime}`);
 
-  const [bookings, setBookings] = useState([]);
+// The profile comes first: a 404 means the worker hasn't finished onboarding.
+async function loadDashboard() {
+  const profile = await getWorkerProfile();
+  const bookings = await getWorkerDashboard();
+  return { profile, bookings };
+}
 
-  useEffect(() => {
-    loadDashboard();
-  }, []);
+export default function WorkerDashboard() {
+  const { user } = useAuth();
+  const { status: loadStatus, data, error, reload, refresh, setData } = useAsync(loadDashboard);
+  const status = loadStatus === "error" && error?.response?.status === 404 ? "noprofile" : loadStatus;
+  const bookings = useMemo(() => data?.bookings ?? [], [data]);
+  const available = Boolean(data?.profile?.available);
+  const setProfile = useCallback((profile) => setData((d) => ({ ...d, profile })), [setData]);
+  const setAvailable = useCallback(
+    (value) => setData((d) => ({ ...d, profile: { ...d.profile, available: value } })),
+    [setData]
+  );
 
-  async function loadDashboard() {
-    try {
-      const data = await getWorkerDashboard();
-      setBookings(data);
-    } catch (err) {
-      console.error(err);
-    }
+  const { requests, upcoming, completed, earnings } = useMemo(() => {
+    const completedList = bookings.filter((b) => b.status === "COMPLETED");
+    return {
+      requests: bookings.filter((b) => b.status === "PENDING").sort(byDateAsc),
+      upcoming: bookings.filter((b) => b.status === "ACCEPTED" || b.status === "IN_PROGRESS").sort(byDateAsc),
+      completed: [...completedList].sort((a, b) => byDateAsc(b, a)),
+      // Take-home pay: the bill minus Wease's commission.
+      earnings: completedList.reduce((sum, b) => sum + Number(b.bill?.workerEarning ?? b.finalPrice ?? 0), 0),
+    };
+  }, [bookings]);
+
+  if (status === "noprofile") {
+    return (
+      <EmptyState
+        icon={UserRoundPlus}
+        title="Finish setting up your profile"
+        description="Customers can't find or book you until you add your service, experience and rates."
+        action={
+          <Link to="/complete-worker-profile" className="inline-flex h-10 items-center rounded-full bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">
+            Complete profile
+          </Link>
+        }
+        className="py-16"
+      />
+    );
   }
 
-  const pending = bookings.filter(
-    b => b.status === "PENDING"
-  ).length;
-
-  const completed = bookings.filter(
-    b => b.status === "COMPLETED"
-  ).length;
-
-  const earnings = bookings
-    .filter(b => b.status === "COMPLETED")
-    .reduce(
-      (sum, b) => sum + (b.finalPrice || 0),
-      0
-    );
-
-  const pendingBookings = bookings.filter(
-    booking => booking.status === "PENDING"
-  );
-
-  const acceptedBookings = bookings.filter(
-    booking => booking.status === "ACCEPTED"
-  );
-
-  const completedBookings = bookings.filter(
-    booking => booking.status === "COMPLETED"
-  );
-
-  const recentJobs = completedBookings.slice(0, 5);
-
   return (
-
-    <div className="p-8 max-w-6xl mx-auto">
-
-      <div className="flex justify-between items-center mb-8">
-
-          <h1 className="text-4xl font-bold">
-
-              Worker Dashboard
-
-          </h1>
-
-          <AvailabilityToggle
-
-              available={true}
-
-              onUpdate={loadDashboard}
-
-          />
-
-      </div>
-
-      {/* Statistics */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-
-        <DashboardStats
-          title="Pending Requests"
-          value={pending}
-          icon={<Clock />}
-          color="text-yellow-500"
-        />
-
-        <DashboardStats
-          title="Completed Jobs"
-          value={completed}
-          icon={<CheckCircle />}
-          color="text-green-600"
-        />
-
-        <DashboardStats
-          title="Total Jobs"
-          value={bookings.length}
-          icon={<Briefcase />}
-        />
-
-        <DashboardStats
-          title="Total Earnings"
-          value={`₹${earnings}`}
-          icon={<IndianRupee />}
-          color="text-green-700"
-        />
-
-      </div>
-
-      {/* Incoming Requests */}
-      <div className="mb-10">
-
-        <h2 className="text-2xl font-bold mb-6">
-          Incoming Requests
-        </h2>
-
-        {pendingBookings.length === 0 ? (
-
-          <div className="rounded-3xl bg-white border border-dashed border-slate-200 p-12 text-center">
-            <p className="text-4xl mb-4">📭</p>
-            <h3 className="text-xl font-semibold text-slate-700">
-              No pending requests.
-            </h3>
-            <p className="text-slate-400 mt-2">
-              You're all caught up!
-            </p>
+    <div className="space-y-8">
+      <HeroPanel>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-white/70">Welcome back</p>
+            <h1 className="text-2xl font-bold sm:text-3xl">Hi {firstName(user?.fullName)}</h1>
+            {status === "ready" && (
+              <p className="mt-1 flex items-center gap-2 text-sm text-white/75">
+                Your rating
+                <RatingBadge average={data.profile.averageRating} count={data.profile.reviewCount} inverted />
+              </p>
+            )}
           </div>
-
-        ) : (
-
-          <div className="space-y-4">
-            {pendingBookings.map(booking => (
-              <RequestCard
-                key={booking.bookingId}
-                booking={booking}
-                onUpdate={loadDashboard}
-              />
-            ))}
-          </div>
-
-        )}
-
-      </div>
-
-      {/* Accepted Jobs */}
-      <div className="mb-10">
-          <h2 className="text-2xl font-bold mb-6">
-              Accepted Jobs
-          </h2>
-          {acceptedBookings.length === 0 ? (
-              <div className="rounded-3xl border border-dashed p-8 text-center bg-white">
-                  <p className="text-gray-500">
-                      No accepted jobs.
-                  </p>
-              </div>
-          ) : (
-              <div className="space-y-4">
-                  {acceptedBookings.map((booking)=>(
-                      <JobCard
-                          key={booking.bookingId}
-                          booking={booking}
-                          onUpdate={loadDashboard}
-                      />
-                  ))}
-              </div>
+          {status === "ready" && (
+            <div className="rounded-2xl bg-white/10 px-4 py-3">
+              <AvailabilityToggle available={available} onChange={setAvailable} />
+            </div>
           )}
-      </div>
+        </div>
+      </HeroPanel>
 
-      {/* Recent Jobs */}
-      {recentJobs.length > 0 && (
+      {status === "error" && <ErrorState message="We couldn't load your dashboard." onRetry={reload} />}
 
-        <div>
-
-          <h2 className="text-2xl font-bold mb-6">
-            Recent Jobs
-          </h2>
-
-          <div className="space-y-4">
-            {recentJobs.map(booking => (
-              <div
-                key={booking.bookingId}
-                className="rounded-3xl bg-white p-5 shadow-sm border border-slate-100 flex justify-between items-center"
-              >
-                <div>
-                  <h3 className="font-bold text-gray-800">
-                    {booking.customerName}
-                  </h3>
-                  <p className="text-sm text-slate-400 mt-0.5">
-                    📅 {booking.bookingDate} &nbsp;•&nbsp; 📍 {booking.serviceAddress}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-                    COMPLETED
-                  </span>
-                  <p className="text-lg font-black text-gray-800 mt-1">
-                    ₹{booking.finalPrice || booking.estimatedPrice}
-                  </p>
-                </div>
-              </div>
+      {status === "loading" && (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-32" />
             ))}
           </div>
-
-        </div>
-
+          <ListSkeleton rows={3} />
+        </>
       )}
 
-    </div>
+      {status === "ready" && (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            <StatCard label="New requests" value={requests.length} icon={Clock} tone="amber" hint="Waiting for your reply" />
+            <StatCard label="Upcoming jobs" value={upcoming.length} icon={CalendarCheck2} tone="blue" hint="Accepted and scheduled" />
+            <StatCard label="Completed jobs" value={completed.length} icon={CheckCircle2} tone="emerald" hint="All time" />
+            <StatCard label="Total earnings" value={formatCurrency(earnings)} icon={IndianRupee} tone="violet" hint="After Wease commission" />
+          </div>
 
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            <PricingSettings profile={data.profile} onSaved={setProfile} />
+            <ServiceAreaCard profile={data.profile} onSaved={setProfile} />
+          </div>
+
+          <div className="grid items-start gap-8 lg:grid-cols-2">
+            <section>
+              <SectionHeader title="New requests" count={requests.length} />
+              {requests.length === 0 ? (
+                <EmptyState
+                  icon={Inbox}
+                  title="No new requests"
+                  description={available ? "New booking requests will show up here." : "Turn on availability to start receiving requests."}
+                />
+              ) : (
+                <div className="space-y-3">
+                  {requests.map((b) => (
+                    <RequestCard key={b.bookingId} booking={b} onUpdate={refresh} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section>
+              <SectionHeader title="Upcoming jobs" count={upcoming.length} />
+              {upcoming.length === 0 ? (
+                <EmptyState icon={BriefcaseBusiness} title="No upcoming jobs" description="Jobs you accept will be listed here." />
+              ) : (
+                <div className="space-y-3">
+                  {upcoming.map((b) => (
+                    <JobCard key={b.bookingId} booking={b} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+
+          {completed.length > 0 && (
+            <section>
+              <SectionHeader title="Recently completed" />
+              <div className="rounded-2xl border border-neutral-200/80 bg-white px-5">
+                <ul className="divide-y divide-neutral-100">
+                  {completed.slice(0, 5).map((b) => (
+                    <li key={b.bookingId}>
+                      <Link to={`/booking/${b.bookingId}`} className="flex items-center justify-between gap-4 py-4 transition hover:text-brand-600">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-neutral-900">{b.customerName}</p>
+                          <p className="truncate text-sm text-neutral-500">
+                            {formatDate(b.bookingDate)} · {b.serviceAddress}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-4">
+                          <StatusBadge status={b.status} className="hidden sm:inline-flex" />
+                          <span className="font-semibold text-neutral-900">{formatCurrency(b.finalPrice ?? b.estimatedPrice)}</span>
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )}
+        </>
+      )}
+    </div>
   );
 }
+

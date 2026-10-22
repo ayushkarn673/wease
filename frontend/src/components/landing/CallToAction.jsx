@@ -1,68 +1,31 @@
-import { ArrowRight, Briefcase } from "lucide-react";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 export default function CallToAction() {
-  const navigate = useNavigate();
-
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="relative overflow-hidden rounded-[32px] bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 p-12 lg:p-20 text-white shadow-2xl"
-        >
-
-          {/* Background Blur */}
-          <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-white/10 blur-3xl"></div>
-          <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-300/20 blur-3xl"></div>
-
-          <div className="relative z-10 max-w-3xl">
-
-            <span className="rounded-full bg-white/20 px-4 py-2 text-sm font-semibold tracking-wide">
-              Start Today
-            </span>
-
-            <h2 className="mt-6 text-4xl md:text-6xl font-bold leading-tight tracking-tight">
-              Find Skilled Workers
-              <br />
-              Within Minutes.
-            </h2>
-
-            <p className="mt-6 text-lg text-blue-100 max-w-xl leading-relaxed font-medium">
-              From home repairs to construction projects,
-              Wease connects you with verified professionals
-              you can trust.
-            </p>
-
-            <div className="mt-10 flex flex-wrap gap-4">
-
-              <button
-                onClick={() => navigate("/register")}
-                className="flex items-center gap-2 rounded-2xl bg-white px-7 py-4 font-semibold text-blue-700 transition hover:scale-105 shadow-md shadow-slate-900/10 hover:shadow-lg active:scale-98"
-              >
-                Find Worker
-                <ArrowRight size={18} />
-              </button>
-
-              <button
-                onClick={() => navigate("/register")}
-                className="flex items-center gap-2 rounded-2xl border border-white/30 px-7 py-4 font-semibold transition hover:bg-white/10 active:scale-98"
-              >
-                <Briefcase size={18} />
-                Become a Worker
-              </button>
-
-            </div>
-
-          </div>
-
-        </motion.div>
-
+    <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+      <div className="flex flex-col gap-6 rounded-3xl bg-brand-700 px-6 py-10 text-white sm:px-10 lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-xl">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Are you a skilled professional?</h2>
+          <p className="mt-2 text-white/75">
+            Get booking requests from customers near you. Set your own rates and choose the jobs you take.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link
+            to="/register?role=worker"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-brand-800 transition hover:bg-brand-50"
+          >
+            Join as a professional
+            <ArrowRight className="size-4" />
+          </Link>
+          <Link
+            to="/workers"
+            className="inline-flex h-12 items-center justify-center rounded-full border border-white/30 px-6 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            Book a service
+          </Link>
+        </div>
       </div>
     </section>
   );

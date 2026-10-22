@@ -1,129 +1,115 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { useAuth } from "../../context/AuthContext";
+import { homePathFor } from "@/lib/format";
+import BrandLogo from "../shared/BrandLogo";
+import CitySelector from "../shared/CitySelector";
+
+const NAV_LINKS = [
+  { to: "/workers", label: "Find professionals" },
+  { to: "/services", label: "Services" },
+  { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
+];
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Services", path: "/services" },
-    { name: "About", path: "/about" },
-    { name: "Contact", path: "/contact" },
-  ];
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 shadow-md"
-          : "bg-transparent border-b border-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-blue-500/20 transition-transform group-hover:scale-105">
-            W
-          </div>
+    <header className="sticky top-0 z-40 border-b border-neutral-200/80 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <BrandLogo />
+          {(!user || user.role === "CUSTOMER") && <CitySelector className="hidden sm:inline-flex" />}
+        </div>
 
-          <span className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Wease
-          </span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8 font-medium">
-          {navLinks.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className="text-slate-700 dark:text-slate-350 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Main">
+          {NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) =>
+                cn(
+                  "text-sm font-medium transition",
+                  isActive ? "text-brand-700" : "text-neutral-600 hover:text-neutral-900"
+                )
+              }
             >
-              {item.name}
-            </Link>
+              {link.label}
+            </NavLink>
           ))}
         </nav>
 
-        {/* Buttons */}
-        <div className="hidden md:flex items-center gap-5">
-          <Link
-            to="/login"
-            className="font-medium text-slate-700 dark:text-slate-355 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-          >
-            Login
-          </Link>
-
-          <Link
-            to="/register"
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white px-5 py-3 rounded-xl transition duration-300 font-semibold shadow-md shadow-blue-600/10 hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Get Started
-          </Link>
+        <div className="hidden items-center gap-2 md:flex">
+          {user ? (
+            <Link
+              to={homePathFor(user.role)}
+              className="inline-flex h-10 items-center rounded-full bg-brand-700 px-5 text-sm font-semibold text-white transition hover:bg-brand-800"
+            >
+              Go to dashboard
+            </Link>
+          ) : (
+            <>
+              <Link to="/login" className="inline-flex h-10 items-center rounded-full px-4 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100">
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex h-10 items-center rounded-full bg-brand-700 px-5 text-sm font-semibold text-white transition hover:bg-brand-800"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Mobile Button */}
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="rounded-full p-2 text-neutral-700 hover:bg-neutral-100 md:hidden"
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
         >
-          {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+          {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-lg"
-          >
-            <div className="flex flex-col p-6 gap-5 font-semibold text-slate-700 dark:text-slate-300">
-              {navLinks.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => setIsOpen(false)}
-                  className="hover:text-blue-600 transition"
-                >
-                  {item.name}
+      {open && (
+        <div className="border-t border-neutral-200 bg-white px-4 pb-5 pt-3 md:hidden">
+          {(!user || user.role === "CUSTOMER") && <CitySelector className="mb-3 sm:hidden" />}
+          <nav className="flex flex-col gap-1" aria-label="Mobile">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setOpen(false)}
+                className="rounded-xl px-3 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {user ? (
+              <Link to={homePathFor(user.role)} className="col-span-2 rounded-full bg-brand-700 py-2.5 text-center text-sm font-semibold text-white">
+                Go to dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="rounded-full border border-neutral-200 py-2.5 text-center text-sm font-semibold text-neutral-700">
+                  Log in
                 </Link>
-              ))}
-
-              <Link
-                to="/login"
-                onClick={() => setIsOpen(false)}
-                className="text-center py-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-              >
-                Login
-              </Link>
-
-              <Link
-                to="/register"
-                onClick={() => setIsOpen(false)}
-                className="text-center py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition shadow-md shadow-blue-600/10"
-              >
-                Get Started
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <Link to="/register" className="rounded-full bg-brand-700 py-2.5 text-center text-sm font-semibold text-white">
+                  Sign up
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

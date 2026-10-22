@@ -1,97 +1,96 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowLeft, Send } from "lucide-react";
+import { Link } from "react-router-dom";
+import { AlertCircle, ArrowLeft, KeyRound, Loader2, Mail, MailCheck } from "lucide-react";
 import AuthLayout from "../../layouts/AuthLayout";
-import AuthCard from "../../components/auth/AuthCard";
 import AuthInput from "../../components/auth/AuthInput";
-import { Button } from "@/components/ui/Button";
+import { forgotPassword } from "../../services/authService";
+import { getErrorMessage } from "@/lib/format";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const navigate = useNavigate();
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  const handleReset = (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-
-    if (!email) {
-      setError("Email is required");
-      return;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address");
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError("Enter a valid email address");
       return;
     }
-
     setError("");
-    setSubmitted(true);
-  };
+    setSending(true);
+    try {
+      await forgotPassword(email.trim());
+      setSent(true);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setSending(false);
+    }
+  }
+
+  if (sent) {
+    return (
+      <AuthLayout>
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+          <MailCheck className="size-6" />
+        </span>
+        <h1 className="mt-6 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Check your email</h1>
+        <p className="mt-3 text-sm leading-relaxed text-neutral-600">
+          If an account exists for <span className="font-semibold text-neutral-900">{email.trim()}</span>, we've sent a
+          link to reset your password. It expires in 30 minutes.
+        </p>
+        <p className="mt-3 text-sm text-neutral-500">Didn't get it? Check your spam folder or try again in a minute.</p>
+        <Link
+          to="/login"
+          className="mt-8 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-neutral-200 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-50"
+        >
+          <ArrowLeft className="size-4" />
+          Back to log in
+        </Link>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
-      <AuthCard>
-        {/* Back Link */}
-        <button
-          onClick={() => navigate("/login")}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-slate-550 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white mb-6 transition"
-        >
-          <ArrowLeft size={16} />
-          Back to Sign In
-        </button>
+      <span className="flex size-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+        <KeyRound className="size-6" />
+      </span>
+      <h1 className="mt-6 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Forgot your password?</h1>
+      <p className="mt-2 text-sm text-neutral-500">Enter your account email and we'll send you a reset link.</p>
 
-        {!submitted ? (
-          <>
-            {/* Header */}
-            <div className="mb-8">
-              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Forgot password?
-              </h2>
-              <p className="mt-2 text-sm font-semibold text-slate-550 dark:text-slate-455">
-                No worries! Enter your email and we'll send you link instructions to reset it.
-              </p>
-            </div>
-
-            {/* Email form */}
-            <form onSubmit={handleReset} className="space-y-6">
-              <AuthInput
-                label="Email Address"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                Icon={Mail}
-                error={error}
-              />
-
-              <Button
-                type="submit"
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-transform"
-              >
-                Send Reset Link
-                <Send size={16} />
-              </Button>
-            </form>
-          </>
-        ) : (
-          <div className="text-center py-6">
-            <div className="w-16 h-16 bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md shadow-green-500/10">
-              <Send size={24} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
-              Check your email
-            </h2>
-            <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-455 leading-relaxed">
-              We have sent a reset password link to <span className="text-slate-800 dark:text-slate-205 font-bold">{email}</span>. Please click the link inside to set a new password.
-            </p>
-            <button
-              onClick={() => setSubmitted(false)}
-              className="mt-8 text-sm font-bold text-blue-650 dark:text-blue-400 hover:underline"
-            >
-              Resend email link
-            </button>
+      <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
+        {error && (
+          <div role="alert" className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            {error}
           </div>
         )}
-      </AuthCard>
+        <AuthInput
+          label="Email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          Icon={Mail}
+        />
+        <button
+          type="submit"
+          disabled={sending}
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-600 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:opacity-60"
+        >
+          {sending && <Loader2 className="size-4 animate-spin" />}
+          {sending ? "Sending…" : "Send reset link"}
+        </button>
+      </form>
+
+      <p className="mt-8 text-center text-sm text-neutral-500">
+        Remembered it?{" "}
+        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-700">Log in</Link>
+      </p>
     </AuthLayout>
   );
 }

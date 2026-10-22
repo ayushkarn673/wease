@@ -1,280 +1,247 @@
-import { useState, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { Star, Shield, Clock, MapPin, SlidersHorizontal, ArrowLeft } from "lucide-react";
-import PublicLayout from "../../layouts/PublicLayout";
-import { Container } from "@/components/ui/Container";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { LayoutGrid, List, Map as MapIcon, MapPin, Search, SearchX, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PROFESSIONS, professionLabel } from "@/lib/format";
+import { MARKETING_PHOTOS, serviceImage, unsplashUrl } from "@/lib/media";
+import { getAvailableWorkers } from "../../services/workerService";
+import { useAsync } from "../../hooks/useAsync";
+import { useCity } from "../../context/city";
+import WorkerCard from "../../components/customer/WorkerCard";
+import WorkersMap from "../../components/map/WorkersMap";
+import HeroPanel from "../../components/shared/HeroPanel";
+import Reveal from "../../components/shared/Reveal";
+import { CardGridSkeleton, EmptyState, ErrorState } from "../../components/shared/States";
 
-// Mock worker data mapping services
-const MOCK_WORKERS = [
-  {
-    id: 1,
-    name: "Rahul Sharma",
-    service: "Carpenter",
-    rating: 4.9,
-    jobs: 142,
-    experience: 5,
-    price: 499,
-    availability: "Available Now",
-    photo: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400",
-  },
-  {
-    id: 2,
-    name: "Aman Gupta",
-    service: "Painter",
-    rating: 4.8,
-    jobs: 98,
-    experience: 4,
-    price: 599,
-    availability: "Available Now",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-  },
-  {
-    id: 3,
-    name: "Vikram Singh",
-    service: "Electrician",
-    rating: 4.7,
-    jobs: 110,
-    experience: 6,
-    price: 399,
-    availability: "Booked",
-    photo: "https://images.unsplash.com/photo-1628157582853-a796fa650a6a?w=400",
-  },
-  {
-    id: 4,
-    name: "Sanjay Kumar",
-    service: "Plumber",
-    rating: 4.9,
-    jobs: 160,
-    experience: 8,
-    price: 449,
-    availability: "Available Now",
-    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400",
-  },
-  {
-    id: 5,
-    name: "Neha Verma",
-    service: "Cleaner",
-    rating: 4.9,
-    jobs: 210,
-    experience: 3,
-    price: 299,
-    availability: "Available Now",
-    photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
-  },
-  {
-    id: 6,
-    name: "Karan Johar",
-    service: "AC Repair",
-    rating: 4.6,
-    jobs: 76,
-    experience: 4,
-    price: 699,
-    availability: "Available Now",
-    photo: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400",
-  },
-];
+const ALL = { value: "", label: "All services", icon: LayoutGrid, tint: { soft: "bg-brand-50 text-brand-700" } };
+const OPTIONS = [ALL, ...PROFESSIONS];
 
+// The professionals directory, open to everyone at /workers.
 export default function Workers() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const profession = params.get("profession") || "";
+  const q = params.get("q") || "";
 
-  const initialService = searchParams.get("service") || "";
-  const initialLocation = searchParams.get("location") || "Lucknow, UP";
+  const [searchText, setSearchText] = useState(q);
+  const { city, setCity, location, setLocation } = useCity();
+  const [view, setView] = useState("list");
 
-  const [selectedService, setSelectedService] = useState(initialService);
-  const [maxPrice, setMaxPrice] = useState(800);
-  const [minRating, setMinRating] = useState(0);
+  const setParam = useCallback(
+    (key, value) => {
+      const next = new URLSearchParams(params);
+      if (value) next.set(key, value);
+      else next.delete(key);
+      setParams(next, { replace: true });
+    },
+    [params, setParams]
+  );
 
-  // Filter logic
-  const filteredWorkers = useMemo(() => {
-    return MOCK_WORKERS.filter((worker) => {
-      const matchService = selectedService ? worker.service.toLowerCase() === selectedService.toLowerCase() : true;
-      const matchPrice = worker.price <= maxPrice;
-      const matchRating = worker.rating >= minRating;
-      return matchService && matchPrice && matchRating;
-    });
-  }, [selectedService, maxPrice, minRating]);
+  const loader = useCallback(
+    () =>
+      getAvailableWorkers({
+        profession: profession || undefined,
+        q: q || undefined,
+        // An exact location finds professionals whose 10 km area covers it; otherwise browse by city.
+        ...(location ? { lat: location.lat, lng: location.lng } : { city: city || undefined }),
+      }),
+    [profession, q, city, location]
+  );
+  const { status, data, reload } = useAsync(loader);
+  const workers = useMemo(() => data ?? [], [data]);
+
+  // Debounce the name search into the URL.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      if (searchText.trim() !== q) setParam("q", searchText.trim());
+    }, 350);
+    return () => clearTimeout(id);
+  }, [searchText, q, setParam]);
+
+  // Nearest first when searching by location (the server sorts); otherwise verified, then most experienced.
+  const visible = useMemo(
+    () =>
+      location
+        ? workers
+        : [...workers].sort((a, b) => Number(b.verified) - Number(a.verified) || (b.experience ?? 0) - (a.experience ?? 0)),
+    [workers, location]
+  );
+
+  const hasFilters = profession || q;
+  const heroImage = serviceImage(profession, 1200) ?? unsplashUrl(MARKETING_PHOTOS.painting, 1200);
+
+  function clearFilters() {
+    setSearchText("");
+    setParams(new URLSearchParams(), { replace: true });
+  }
 
   return (
-    <PublicLayout>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12">
-        <Container>
-          
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-            <div>
+    <div className="space-y-8">
+      <HeroPanel image={heroImage}>
+        <p className="text-sm font-medium text-white/70">{profession ? "Service" : "Directory"}</p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">
+          {profession ? `${professionLabel(profession)}s` : "Find a professional"}
+        </h1>
+        <p className="mt-2 max-w-md text-white/75">
+          Compare experience and visiting charges, then book a time that suits you.
+        </p>
+        <label className="mt-6 flex max-w-lg items-center gap-3 rounded-full bg-white px-5 shadow-lg shadow-black/10">
+          <Search className="size-5 shrink-0 text-neutral-400" />
+          <span className="sr-only">Search by name</span>
+          <input
+            type="search"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="Search professionals by name"
+            className="h-13 min-w-0 flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+          />
+        </label>
+      </HeroPanel>
+
+      <div className="lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:items-start lg:gap-8">
+        <aside className="hidden lg:sticky lg:top-24 lg:block" aria-label="Services">
+          <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-neutral-400">Services</p>
+          <nav className="space-y-0.5">
+            {OPTIONS.map(({ value, label, icon: Icon, tint }) => (
               <button
-                onClick={() => navigate(-1)}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white mb-2 transition-colors"
+                key={value || "all"}
+                type="button"
+                onClick={() => setParam("profession", value)}
+                aria-current={profession === value ? "true" : undefined}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium transition",
+                  profession === value ? "bg-white text-brand-700 shadow-sm ring-1 ring-neutral-200" : "text-neutral-600 hover:bg-white/70 hover:text-neutral-900"
+                )}
               >
-                <ArrowLeft className="size-4" />
-                Back
+                <span className={cn("flex size-8 items-center justify-center rounded-lg", tint.soft)}>
+                  <Icon className="size-4" />
+                </span>
+                {label}
               </button>
-              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                Available Workers
-              </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-                <MapPin className="size-4 text-blue-600 dark:text-blue-400" />
-                Showing experts in <span className="font-semibold text-slate-800 dark:text-slate-200">{initialLocation}</span>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="min-w-0 space-y-5">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 lg:hidden [&::-webkit-scrollbar]:hidden">
+            {OPTIONS.map(({ value, label, icon: Icon }) => (
+              <button
+                key={value || "all"}
+                type="button"
+                onClick={() => setParam("profession", value)}
+                className={cn(
+                  "inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition",
+                  profession === value
+                    ? "border-brand-700 bg-brand-700 text-white"
+                    : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
+                )}
+              >
+                <Icon className="size-4" />
+                {value ? label : "All"}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-900 sm:text-xl">
+                {status === "ready"
+                  ? `${visible.length} ${visible.length === 1 ? "professional" : "professionals"} ${
+                      location ? `within 10 km of ${location.label}` : `available${city ? ` in ${city}` : ""}`
+                    }`
+                  : "Professionals"}
+              </h2>
+              <p className="text-sm text-neutral-500">
+                {profession ? professionLabel(profession) : "All services"}
+                {q && <> · matching “{q}”</>}
               </p>
             </div>
-            
-            <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-              Found <span className="text-blue-600 dark:text-blue-400">{filteredWorkers.length}</span> professionals
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Filters Sidebar */}
-            <div className="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-800 mb-6">
-                <SlidersHorizontal className="size-4 text-slate-900 dark:text-white" />
-                <h2 className="font-bold text-slate-900 dark:text-white">Filters</h2>
-              </div>
-
-              {/* Service Filter */}
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Service Category
-                </label>
-                <select
-                  value={selectedService}
-                  onChange={(e) => setSelectedService(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30 text-sm font-semibold text-slate-700 dark:text-slate-355 focus-visible:outline-none"
+            <div className="flex shrink-0 items-center gap-2">
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex h-9 items-center gap-1 rounded-full px-3 text-sm font-medium text-brand-700 hover:bg-brand-50"
                 >
-                  <option value="">All Services</option>
-                  {["Carpenter", "Painter", "Electrician", "Plumber", "Cleaner", "AC Repair"].map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Price Filter */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Max Price
-                  </label>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white">₹{maxPrice}</span>
-                </div>
-                <input
-                  type="range"
-                  min="200"
-                  max="800"
-                  step="50"
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full accent-blue-600 cursor-pointer"
-                />
-              </div>
-
-              {/* Rating Filter */}
-              <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Minimum Rating
-                </label>
-                <div className="flex flex-col gap-2">
-                  {[0, 4.7, 4.8, 4.9].map((rating) => (
-                    <label key={rating} className="flex items-center gap-2 text-sm text-slate-650 dark:text-slate-350 font-semibold cursor-pointer">
-                      <input
-                        type="radio"
-                        name="rating"
-                        checked={minRating === rating}
-                        onChange={() => setMinRating(rating)}
-                        className="accent-blue-600 size-4"
-                      />
-                      {rating === 0 ? "Any Rating" : `${rating} ★ & Above`}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Workers Grid */}
-            <div className="lg:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredWorkers.length > 0 ? (
-                filteredWorkers.map((worker) => (
-                  <Card
-                    key={worker.id}
-                    className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-805 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
-                  >
-                    <div className="flex items-start gap-4">
-                      {/* Photo */}
-                      <img
-                        src={worker.photo}
-                        alt={worker.name}
-                        className="h-20 w-20 rounded-2xl object-cover border border-slate-100 dark:border-slate-800"
-                      />
-                      
-                      {/* Name, Service, Rating */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">
-                            {worker.name}
-                          </h3>
-                          <Shield className="size-4 text-blue-600 dark:text-blue-400 shrink-0" title="Verified Worker" />
-                        </div>
-                        <p className="text-sm font-semibold text-slate-400 mt-0.5">
-                          {worker.service}
-                        </p>
-                        
-                        <div className="flex items-center gap-4 mt-2">
-                          <div className="flex items-center gap-1 text-amber-500 font-bold text-sm">
-                            <Star className="size-4 fill-amber-500 text-amber-500" />
-                            {worker.rating}
-                          </div>
-                          <span className="text-xs text-slate-400 dark:text-slate-500 font-semibold">
-                            {worker.jobs} Jobs
-                          </span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500 font-semibold">
-                            {worker.experience} yrs exp
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Footer Details */}
-                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Rate</span>
-                        <span className="font-extrabold text-blue-600 dark:text-blue-400 text-lg">
-                          ₹{worker.price} <span className="text-xs text-slate-500 dark:text-slate-450 font-normal">/ Visit</span>
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
-                          worker.availability === "Available Now"
-                            ? "bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400"
-                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-450"
-                        }`}>
-                          {worker.availability}
-                        </span>
-                        
-                        <Button
-                          onClick={() => navigate(`/booking?worker=${worker.id}`)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm px-4 h-9 text-xs font-bold"
-                        >
-                          Book Now
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full py-12 text-center text-slate-500">
-                  No workers match your selected filters. Try broadening your criteria.
-                </div>
+                  <X className="size-4" />
+                  Clear
+                </button>
               )}
+              <div className="inline-flex rounded-full border border-neutral-200 bg-white p-0.5" role="tablist" aria-label="View">
+                {[
+                  { key: "list", label: "List", icon: List },
+                  { key: "map", label: "Map", icon: MapIcon },
+                ].map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={view === key}
+                    onClick={() => setView(key)}
+                    className={cn(
+                      "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition",
+                      view === key ? "bg-brand-700 text-white" : "text-neutral-600 hover:text-neutral-900"
+                    )}
+                  >
+                    <Icon className="size-4" />
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
-
           </div>
 
-        </Container>
+          {status === "loading" && <CardGridSkeleton count={4} className="" />}
+          {status === "error" && <ErrorState message="We couldn't load professionals right now." onRetry={reload} />}
+          {status === "ready" && visible.length === 0 && location && (
+            <EmptyState
+              icon={MapPin}
+              title={`No professionals cover ${location.label} yet`}
+              description="Professionals serve within 10 km of their base. Try a nearby location, or browse the whole city."
+              action={
+                <button type="button" onClick={() => setLocation(null)} className="rounded-full bg-brand-700 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-800">
+                  Clear my location
+                </button>
+              }
+            />
+          )}
+          {status === "ready" && visible.length === 0 && !location && city && !hasFilters && (
+            <EmptyState
+              icon={MapPin}
+              title={`No professionals in ${city} yet`}
+              description="We're adding professionals city by city. You can browse every city in the meantime."
+              action={
+                <button type="button" onClick={() => setCity(null)} className="rounded-full bg-brand-700 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-800">
+                  Show all cities
+                </button>
+              }
+            />
+          )}
+          {status === "ready" && visible.length === 0 && !location && !(city && !hasFilters) && (
+            <EmptyState
+              icon={SearchX}
+              title="No professionals match your search"
+              description={hasFilters ? "Try a different service or remove some filters." : "Check back soon — new professionals join regularly."}
+              action={
+                hasFilters && (
+                  <button type="button" onClick={clearFilters} className="rounded-full bg-brand-700 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-800">
+                    Clear filters
+                  </button>
+                )
+              }
+            />
+          )}
+          {status === "ready" && visible.length > 0 && view === "map" && <WorkersMap workers={visible} location={location} city={city} />}
+          {status === "ready" && visible.length > 0 && view === "list" && (
+            <div className="border-t border-neutral-200/80">
+              {visible.map((worker, i) => (
+                <Reveal key={worker.id} index={i} className="min-w-0">
+                  <WorkerCard worker={worker} />
+                </Reveal>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </PublicLayout>
+    </div>
   );
 }

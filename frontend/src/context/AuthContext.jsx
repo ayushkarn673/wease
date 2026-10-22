@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext();
 
@@ -20,24 +20,30 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (data) => {
-    localStorage.setItem("token", data.token);
-
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        fullName: data.fullName,
-        email: data.email,
-        role: data.role,
-      })
-    );
-
-    setToken(data.token);
-    setUser({
+    const nextUser = {
       fullName: data.fullName,
       email: data.email,
       role: data.role,
-    });
+      emailVerified: data.emailVerified,
+      city: data.city ?? null,
+    };
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(nextUser));
+
+    setToken(data.token);
+    setUser(nextUser);
   };
+
+  // Merge changes into the signed-in user (e.g. after verifying the email address).
+  const updateUser = useCallback((patch) => {
+    setUser((current) => {
+      if (!current) return current;
+      const next = { ...current, ...patch };
+      localStorage.setItem("user", JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
   const logout = () => {
     localStorage.clear();
@@ -51,6 +57,7 @@ export function AuthProvider({ children }) {
         user,
         token,
         login,
+        updateUser,
         logout,
         loading,
         isAuthenticated: !!token,

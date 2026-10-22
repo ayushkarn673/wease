@@ -1,0 +1,2 @@
+// Cities offered in the city picker. Professionals are matched by the city in their service address.
+export const CITIES = ["Pune", "Mumbai", "Bengaluru", "Delhi", "Hyderabad", "Chennai", "Kolkata", "Ahmedabad", "Jaipur", "Lucknow"];

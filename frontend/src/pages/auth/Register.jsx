@@ -1,47 +1,37 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, ArrowRight } from "lucide-react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { AlertCircle, Loader2, Mail, User } from "lucide-react";
 import { register } from "../../services/authService";
+import { useAuth } from "../../context/AuthContext";
+import { getErrorMessage } from "@/lib/format";
 import AuthLayout from "../../layouts/AuthLayout";
-import AuthCard from "../../components/auth/AuthCard";
 import AuthInput from "../../components/auth/AuthInput";
 import PasswordInput from "../../components/auth/PasswordInput";
 import RoleSelector from "../../components/auth/RoleSelector";
-import GoogleButton from "../../components/auth/GoogleButton";
-import AuthDivider from "../../components/auth/AuthDivider";
-import { useAuth } from "../../context/AuthContext";
-import { Button } from "@/components/ui/Button";
 
 export default function Register() {
-  const [role, setRole] = useState("customer");
+  const [searchParams] = useSearchParams();
+  const [role, setRole] = useState(() => {
+    const requested = searchParams.get("role");
+    return requested === "worker" || requested === "firm" ? requested : "customer";
+  });
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     const newErrors = {};
-
-    if (!name) {
-      newErrors.name = "Full name is required";
-    }
-
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
+    if (!name.trim()) newErrors.name = "Full name is required";
+    if (!email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Enter a valid email address";
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Use at least 6 characters";
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -49,41 +39,25 @@ export default function Register() {
 
     setErrors({});
     setLoading(true);
-
     try {
       const response = await register({
-        fullName: name,
-        email,
+        fullName: name.trim(),
+        email: email.trim(),
         password,
         phone: null,
         role: role.toUpperCase(),
       });
-
-      console.log("Register success:", response);
-
       login(response);
 
-      // Success routing flow:
       if (role === "worker") {
-        navigate("/complete-worker-profile");
+        navigate("/complete-worker-profile", { replace: true });
+      } else if (role === "firm") {
+        navigate("/complete-firm-profile", { replace: true });
       } else {
-        navigate("/verify-email");
+        navigate(location.state?.from || "/", { replace: true });
       }
     } catch (error) {
-      console.error("Register error:", error);
-      const data = error.response?.data;
-      // ErrorResponse shape: { message: "..." }
-      // Validation shape: { fieldName: "error msg", ... }
-      // Network/CORS: error.response is undefined
-      if (data?.message) {
-        setErrors({ server: data.message });
-      } else if (data && typeof data === "object") {
-        // flatten first validation error
-        const firstMsg = Object.values(data)[0];
-        setErrors({ server: firstMsg || "Registration failed. Please try again." });
-      } else {
-        setErrors({ server: "Unable to connect to server. Make sure the backend is running." });
-      }
+      setErrors({ server: getErrorMessage(error, "Registration failed. Please try again.") });
     } finally {
       setLoading(false);
     }
@@ -91,81 +65,63 @@ export default function Register() {
 
   return (
     <AuthLayout>
-      <AuthCard>
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Create account
-          </h2>
-          <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-455">
-            Already have an account?{" "}
-            <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </div>
+      <h1 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Create your account</h1>
+      <p className="mt-2 text-sm text-neutral-500">It only takes a minute.</p>
 
-        {/* Role Selection */}
-        <div className="mb-6">
-          <RoleSelector value={role} onChange={setRole} />
-        </div>
+      <form onSubmit={handleRegister} noValidate className="mt-8 space-y-5">
+        <RoleSelector value={role} onChange={setRole} />
 
-        <GoogleButton onClick={() => navigate("/verify-email")} label="Continue with Google" />
+        {errors.server && (
+          <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            {errors.server}
+          </div>
+        )}
 
-        <AuthDivider />
+        <AuthInput
+          label="Full name"
+          autoComplete="name"
+          placeholder="Your full name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          Icon={User}
+          error={errors.name}
+        />
+        <AuthInput
+          label="Email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          Icon={Mail}
+          error={errors.email}
+        />
+        <PasswordInput
+          label="Password"
+          autoComplete="new-password"
+          placeholder="At least 6 characters"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={errors.password}
+        />
 
-        <form onSubmit={handleRegister} className="space-y-4">
-          {errors.server && (
-            <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
-              <span className="text-red-500 mt-0.5">⚠</span>
-              <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{errors.server}</p>
-            </div>
-          )}
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+        >
+          {loading && <Loader2 className="size-4 animate-spin" />}
+          {loading ? "Creating account…" : role === "worker" ? "Continue to profile setup" : "Create account"}
+        </button>
+      </form>
 
-          <AuthInput
-            label="Full Name"
-            type="text"
-            placeholder="John Doe"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            Icon={User}
-            error={errors.name}
-          />
-
-          <AuthInput
-            label="Email Address"
-            type="email"
-            placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            Icon={Mail}
-            error={errors.email}
-          />
-
-          <PasswordInput
-            label="Password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            error={errors.password}
-          />
-
-          <p className="text-[11px] text-slate-455 dark:text-slate-500 leading-relaxed font-semibold">
-            By creating an account, you agree to our{" "}
-            <span className="text-slate-700 dark:text-slate-450 underline cursor-pointer">Terms of Service</span> and{" "}
-            <span className="text-slate-700 dark:text-slate-450 underline cursor-pointer">Privacy Policy</span>.
-          </p>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-transform pt-1 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? "Creating account..." : "Create Account"}
-            {!loading && <ArrowRight size={18} />}
-          </Button>
-        </form>
-      </AuthCard>
+      <p className="mt-8 text-center text-sm text-neutral-500">
+        Already have an account?{" "}
+        <Link to="/login" state={location.state} className="font-semibold text-brand-600 hover:text-brand-700">
+          Log in
+        </Link>
+      </p>
     </AuthLayout>
   );
 }

@@ -1,165 +1,234 @@
-import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { Star, ShieldCheck, Briefcase, MapPin, ArrowLeft, Calendar, FileText } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { useCallback } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { BadgeCheck, Banknote, Briefcase, CalendarCheck2, ChevronLeft, ClipboardList, MapPin, ShieldCheck, Tag, UserX } from "lucide-react";
+import { useAsync } from "../../hooks/useAsync";
 import { getWorkerDetails } from "../../services/workerService";
-
-const defaultAvatar = "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=200&h=200&fit=crop&crop=face";
-
-const professionLabels = {
-  CARPENTER: "Carpenter",
-  PAINTER: "Painter",
-  ELECTRICIAN: "Electrician",
-  PLUMBER: "Plumber",
-  MASON: "Mason",
-  CLEANER: "Cleaner",
-  AC_TECHNICIAN: "AC Repair",
-  LABOURER: "Labourer",
-};
+import { firstName, formatVisitCharge, professionLabel, visitPolicy } from "@/lib/format";
+import { serviceImage } from "@/lib/media";
+import UserAvatar from "../../components/shared/UserAvatar";
+import HeroPanel from "../../components/shared/HeroPanel";
+import SectionHeader from "../../components/shared/SectionHeader";
+import BookWorkerButton from "../../components/booking/BookWorkerButton";
+import ServiceAreaMap from "../../components/map/ServiceAreaMap";
+import ReviewsSection from "../../components/review/ReviewsSection";
+import { getWorkerReviews } from "../../services/reviewService";
+import { RatingBadge } from "../../components/review/StarRating";
+import { useCity } from "../../context/city";
+import { SERVICE_RADIUS_KM } from "@/lib/geo";
+import { EmptyState, ErrorState, Skeleton } from "../../components/shared/States";
 
 export default function WorkerDetails() {
   const { id } = useParams();
-  const [worker, setWorker] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { location } = useCity();
   const navigate = useNavigate();
+  const loader = useCallback(() => getWorkerDetails(id), [id]);
+  const loadReviews = useCallback(() => getWorkerReviews(id), [id]);
+  const { status: loadStatus, data: worker, error, reload } = useAsync(loader);
+  const status = loadStatus === "error" && error?.response?.status === 404 ? "notfound" : loadStatus;
 
-  useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        setLoading(true);
-        const data = await getWorkerDetails(id);
-        setWorker(data);
-      } catch (err) {
-        console.error("Error fetching worker details:", err);
-        setError("Failed to load worker profile details.");
-      } finally {
-        setLoading(false);
+  const backButton = (light) => (
+    <button
+      type="button"
+      onClick={() => navigate(-1)}
+      aria-label="Back"
+      className={
+        light
+          ? "flex size-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+          : "flex size-10 items-center justify-center rounded-full bg-white text-neutral-700 transition hover:text-brand-700"
       }
-    };
+    >
+      <ChevronLeft className="size-5" />
+    </button>
+  );
 
-    fetchDetails();
-  }, [id]);
-
-  if (loading) {
+  if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-[400px] text-slate-500 font-bold">
-        Loading profile...
+      <div className="space-y-4">
+        <Skeleton className="h-56 bg-brand-100" />
+        <Skeleton className="h-40" />
       </div>
     );
   }
 
-  if (error || !worker) {
+  if (status === "notfound") {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-3xl p-8 text-center max-w-md mx-auto mt-12">
-        <p className="text-red-600 font-semibold">{error || "Profile not found."}</p>
-        <Link to="/customer/dashboard">
-          <Button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-            Go back to Dashboard
-          </Button>
-        </Link>
+      <div className="space-y-4">
+        {backButton(false)}
+        <EmptyState
+          icon={UserX}
+          title="Professional not found"
+          description="This profile may have been removed."
+          action={<Link to="/workers" className="text-sm font-semibold text-brand-600">Browse professionals</Link>}
+        />
       </div>
     );
   }
 
-  const ratingValue = worker.rating || 5.0;
+  if (status === "error") {
+    return (
+      <div className="space-y-4">
+        {backButton(false)}
+        <ErrorState message="We couldn't load this profile." onRetry={reload} />
+      </div>
+    );
+  }
+
+  const years = worker.experience ?? 0;
+  const first = firstName(worker.fullName);
+  const policy = visitPolicy(worker.visitingChargePolicy);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-sm transition"
-      >
-        <ArrowLeft size={16} />
-        Back
-      </button>
-
-      {/* Main Details Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center justify-between pb-6 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex gap-4 items-center">
-            <img
-              src={worker.profilePhoto || defaultAvatar}
-              alt={worker.fullName}
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl object-cover border border-slate-100 dark:border-slate-800"
-            />
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-                  {worker.fullName}
-                </h2>
-                {worker.verified && (
-                  <ShieldCheck size={20} className="text-blue-600 dark:text-blue-500" />
-                )}
-              </div>
-              <p className="text-slate-500 font-semibold mt-0.5">
-                {professionLabels[worker.profession] || worker.profession}
-              </p>
-
-              <div className="flex items-center gap-1.5 mt-2 bg-slate-50 dark:bg-slate-950 px-3 py-1 rounded-xl w-max">
-                <Star size={16} className="text-amber-500 fill-amber-500" />
-                <span className="text-sm font-extrabold text-slate-700 dark:text-slate-350">
-                  {ratingValue.toFixed(1)} (12 reviews)
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-left sm:text-right w-full sm:w-auto">
-            <p className="text-2xl font-black text-blue-600 dark:text-blue-500">
-              ₹{worker.hourlyRate}
+    <div className="space-y-6">
+      <HeroPanel image={serviceImage(worker.profession, 1200)}>
+        <div className="flex items-start justify-between gap-4">
+          {backButton(true)}
+          {worker.available ? (
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700">Accepting bookings</span>
+          ) : (
+            <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white">Not available right now</span>
+          )}
+        </div>
+        <div className="mt-5 flex items-center gap-4">
+          <UserAvatar name={worker.fullName} src={worker.profilePhoto} seed={worker.id} size="xl" className="ring-4 ring-white/25" />
+          <div className="min-w-0">
+            <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-4xl">
+              <span className="truncate">{worker.fullName}</span>
+              {worker.verified && <BadgeCheck className="size-6 shrink-0" aria-label="Verified" />}
+            </h1>
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-white/75">
+              {professionLabel(worker.profession)}
+              <RatingBadge average={worker.averageRating} count={worker.reviewCount} inverted />
             </p>
-            <p className="text-xs text-slate-400 font-bold tracking-wide uppercase mt-0.5">Starting visit rate</p>
           </div>
         </div>
+        <div className="mt-7 grid max-w-xl grid-cols-3 gap-2 rounded-2xl bg-white/10 p-3 text-center backdrop-blur-sm">
+          <HeroFact label="Experience" value={`${years} ${years === 1 ? "yr" : "yrs"}`} />
+          <HeroFact label="Visiting charge" value={formatVisitCharge(worker.visitingCharge)} />
+          <HeroFact label="Area" value={worker.address || "—"} />
+        </div>
+      </HeroPanel>
 
-        {/* Stats segment */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-          <div className="flex items-center gap-3 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl">
-            <Briefcase size={22} className="text-slate-450" />
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Experience</p>
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5">{worker.experience} Years</p>
+      <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
+        <div className="space-y-6">
+          <section>
+            <SectionHeader title="About" />
+            <div className="rounded-2xl border border-neutral-200/80 bg-white p-6">
+              <p className="whitespace-pre-line leading-relaxed text-neutral-700">
+                {worker.bio || `${worker.fullName} hasn't added a description yet.`}
+              </p>
             </div>
-          </div>
+          </section>
 
-          <div className="flex items-center gap-3 bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800 p-4 rounded-2xl">
-            <MapPin size={22} className="text-slate-450" />
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Location / Address</p>
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5">{worker.address}</p>
-            </div>
-          </div>
+          <section>
+            <SectionHeader title="Details" />
+            <ul className="space-y-3">
+              <DetailRow icon={Briefcase} label="Experience" value={`${years} ${years === 1 ? "year" : "years"} in ${professionLabel(worker.profession).toLowerCase()} work`} />
+              <DetailRow icon={MapPin} label="Service area" value={worker.address || "Not specified"} />
+            </ul>
+          </section>
+
+          <section>
+            <SectionHeader title="Service area" subtitle={`Within ${SERVICE_RADIUS_KM} km of their base (shown approximately)`} />
+            {worker.hasServiceArea ? (
+              <ServiceAreaMap lat={worker.approxLatitude} lng={worker.approxLongitude} customer={location} />
+            ) : (
+              <p className="rounded-2xl border border-neutral-200/80 bg-white p-5 text-sm text-neutral-600">
+                {first} hasn&apos;t set a service area on the map yet. They work around {worker.address || "their listed area"}.
+              </p>
+            )}
+          </section>
+
+          <section>
+            <SectionHeader title="How pricing works" />
+            <ol className="divide-y divide-neutral-100 rounded-2xl border border-neutral-200/80 bg-white">
+              <PricingStep
+                icon={Tag}
+                title={`Visiting charge: ${formatVisitCharge(worker.visitingCharge)}`}
+                text={`Covers travel and inspecting the job. ${policy.description}`}
+              />
+              <PricingStep
+                icon={ClipboardList}
+                title="Itemised quote after inspection"
+                text={`${first} sees the job and sends you a quote with labour and materials listed separately, priced for your job.`}
+              />
+              <PricingStep
+                icon={ShieldCheck}
+                title="You approve before any repair"
+                text="No repair work is charged until you accept the quote. If more work is needed, you get a revised quote to approve first."
+              />
+              <PricingStep icon={Banknote} title="Pay in cash after the job" text="You pay the professional when the work is done and get a payment record in your booking." />
+            </ol>
+          </section>
+
+          <section>
+            <SectionHeader title="Ratings & reviews" subtitle="From customers who booked through Wease" />
+            <ReviewsSection load={loadReviews} name={first} />
+          </section>
         </div>
 
-        {/* Bio */}
-        <div className="mt-8 space-y-3">
-          <h4 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-base">
-            <FileText size={18} className="text-slate-450" />
-            About the Professional
-          </h4>
-          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed font-semibold">
-            {worker.bio || "No description provided."}
+        <aside className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xl shadow-neutral-900/[0.04] lg:sticky lg:top-24">
+          <p className="text-sm font-semibold text-neutral-900">Book this professional</p>
+          <p className="mt-3 flex items-baseline gap-2">
+            <span className="text-3xl font-bold tracking-tight text-neutral-900">{formatVisitCharge(worker.visitingCharge)}</span>
+            <span className="text-sm text-neutral-500">visiting charge</span>
           </p>
-        </div>
-
-        {/* Booking CTA Button */}
-        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between gap-4">
-          <div className="hidden sm:block">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Availability</p>
-            <p className="text-sm font-bold text-green-600 mt-0.5">Available Today</p>
-          </div>
-          
-          <Button
-            onClick={() => navigate(`/book/${worker.id}`)}
-            className="w-full sm:w-48 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2"
-          >
-            <Calendar size={18} />
-            Book Service
-          </Button>
-        </div>
+          <p className="mt-1 text-sm text-neutral-500">{policy.short}</p>
+          <dl className="mt-4 space-y-2 rounded-xl bg-neutral-50 p-3.5 text-sm">
+            <div className="flex justify-between gap-3">
+              <dt className="text-neutral-500">Repair</dt>
+              <dd className="font-medium text-neutral-900">Quoted after inspection</dd>
+            </div>
+            <div className="flex justify-between gap-3">
+              <dt className="text-neutral-500">Payment</dt>
+              <dd className="font-medium text-neutral-900">Cash after the job</dd>
+            </div>
+          </dl>
+          <BookWorkerButton worker={worker} size="lg" className="mt-5 w-full">
+            Request a booking
+          </BookWorkerButton>
+          <p className="mt-4 flex items-start gap-2 text-xs text-neutral-500">
+            <CalendarCheck2 className="mt-0.5 size-4 shrink-0 text-brand-600" />
+            Choose a date and time, then follow the status on your bookings page.
+          </p>
+        </aside>
       </div>
     </div>
+  );
+}
+
+function HeroFact({ label, value }) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-sm font-bold">{value}</p>
+      <p className="text-xs text-white/65">{label}</p>
+    </div>
+  );
+}
+
+function DetailRow({ icon: Icon, label, value }) {
+  return (
+    <li className="flex items-center gap-4 rounded-2xl border border-neutral-200/80 bg-white p-3">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+        <Icon className="size-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs text-neutral-500">{label}</p>
+        <p className="truncate font-medium text-neutral-900">{value}</p>
+      </div>
+    </li>
+  );
+}
+
+function PricingStep({ icon: Icon, title, text }) {
+  return (
+    <li className="flex gap-4 p-4">
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+        <Icon className="size-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="font-semibold text-neutral-900">{title}</p>
+        <p className="mt-0.5 text-sm leading-relaxed text-neutral-600">{text}</p>
+      </div>
+    </li>
   );
 }

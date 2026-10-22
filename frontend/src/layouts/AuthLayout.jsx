@@ -1,80 +1,51 @@
-import { ShieldCheck, Clock3, BadgeCheck } from "lucide-react";
+import { BadgeIndianRupee, CalendarCheck2, ListChecks } from "lucide-react";
+import BrandLogo from "../components/shared/BrandLogo";
+
+const POINTS = [
+  { icon: BadgeIndianRupee, title: "Clear visiting charges", text: "See what a visit costs before you book." },
+  { icon: CalendarCheck2, title: "Book on your schedule", text: "Choose the date and time that suits you." },
+  { icon: ListChecks, title: "Every job in one place", text: "Follow each booking from request to done." },
+];
 
 export default function AuthLayout({ children }) {
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 bg-slate-50">
-
-      {/* Left Side */}
-      <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-500 text-white p-12">
-
+    <div className="grid min-h-screen bg-white lg:grid-cols-[1fr_1.1fr]">
+      <aside className="hidden bg-brand-600 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div>
-          <div className="flex items-center gap-3">
+          <BrandLogo inverted />
+        </div>
 
-            <div className="h-12 w-12 rounded-xl bg-white text-blue-600 flex items-center justify-center text-2xl font-bold">
-              W
-            </div>
-
-            <h1 className="text-3xl font-bold">
-              Wease
-            </h1>
-
-          </div>
-
-          <h2 className="mt-16 text-5xl font-bold leading-tight">
-            Work Made Easy.
-          </h2>
-
-          <p className="mt-6 text-lg text-blue-100 max-w-md">
-            Book trusted professionals for every home service in just a few clicks.
+        <div className="max-w-md">
+          <h2 className="text-5xl font-black leading-[1.05] tracking-tight">Home services, without the hassle.</h2>
+          <p className="mt-5 text-lg text-brand-100">
+            Book skilled local professionals — electricians, plumbers, carpenters and more.
           </p>
+          <ul className="mt-10 space-y-6">
+            {POINTS.map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex gap-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/15">
+                  <Icon className="size-5" />
+                </span>
+                <div>
+                  <p className="font-medium">{title}</p>
+                  <p className="text-sm text-brand-200">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="space-y-8">
+        <p className="text-sm text-brand-200">© {new Date().getFullYear()} Wease</p>
+      </aside>
 
-          <div className="flex gap-4">
-            <ShieldCheck size={28} />
-            <div>
-              <h3 className="font-semibold">Verified Workers</h3>
-              <p className="text-blue-100">
-                Every professional is verified before joining.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <Clock3 size={28} />
-            <div>
-              <h3 className="font-semibold">Quick Booking</h3>
-              <p className="text-blue-100">
-                Hire skilled workers within minutes.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <BadgeCheck size={28} />
-            <div>
-              <h3 className="font-semibold">Trusted Platform</h3>
-              <p className="text-blue-100">
-                Secure booking and transparent reviews.
-              </p>
-            </div>
-          </div>
-
+      <main className="flex flex-col px-4 py-8 sm:px-8">
+        <div className="lg:hidden">
+          <BrandLogo />
         </div>
-
-      </div>
-
-      {/* Right Side */}
-
-      <div className="flex items-center justify-center p-6 lg:p-12">
-
-        <div className="w-full max-w-md">
-          {children}
+        <div className="flex flex-1 items-center justify-center py-10">
+          <div className="w-full max-w-md">{children}</div>
         </div>
-
-      </div>
-
+      </main>
     </div>
   );
 }

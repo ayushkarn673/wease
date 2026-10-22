@@ -1,56 +1,44 @@
-import { User, Briefcase } from "lucide-react";
+import { Briefcase, Building2, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const OPTIONS = [
+  { value: "customer", label: "I need a service", hint: "Book professionals", icon: Home },
+  { value: "worker", label: "I'm a professional", hint: "Get booking requests", icon: Briefcase },
+  { value: "firm", label: "We supply labour", hint: "List your firm's crews", icon: Building2 },
+];
 
 export default function RoleSelector({ value, onChange }) {
   return (
-    <div className="flex flex-col gap-2 w-full">
-      <label className="text-sm font-semibold text-slate-700 dark:text-slate-350">
-        Choose account type
-      </label>
-      
-      <div className="grid grid-cols-2 gap-4">
-        
-        {/* Customer Card */}
-        <div
-          onClick={() => onChange("customer")}
-          className={cn(
-            "cursor-pointer border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center transition hover:border-blue-500 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 select-none",
-            value === "customer" && "border-blue-600 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 ring-2 ring-blue-600/20"
-          )}
-        >
-          <div className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-850 text-slate-655 dark:text-slate-400 transition-colors",
-            value === "customer" && "bg-blue-600 text-white dark:bg-blue-500"
-          )}>
-            <User size={24} />
-          </div>
-          <div>
-            <h4 className="font-bold text-slate-900 dark:text-white text-sm">Customer</h4>
-            <p className="text-[11px] text-slate-450 dark:text-slate-500 font-medium mt-0.5">I want to hire workers</p>
-          </div>
-        </div>
-
-        {/* Worker Card */}
-        <div
-          onClick={() => onChange("worker")}
-          className={cn(
-            "cursor-pointer border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 text-center transition hover:border-blue-500 hover:bg-slate-50/50 dark:hover:bg-slate-900/50 select-none",
-            value === "worker" && "border-blue-600 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-950/20 ring-2 ring-blue-600/20"
-          )}
-        >
-          <div className={cn(
-            "w-12 h-12 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-slate-850 text-slate-655 dark:text-slate-400 transition-colors",
-            value === "worker" && "bg-blue-600 text-white dark:bg-blue-500"
-          )}>
-            <Briefcase size={24} />
-          </div>
-          <div>
-            <h4 className="font-bold text-slate-900 dark:text-white text-sm">Worker</h4>
-            <p className="text-[11px] text-slate-455 dark:text-slate-500 font-medium mt-0.5">I want to offer services</p>
-          </div>
-        </div>
-
-      </div>
+    <div role="radiogroup" aria-label="Account type" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {OPTIONS.map(({ value: option, label, hint, icon: Icon }) => {
+        const selected = value === option;
+        return (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onChange(option)}
+            className={cn(
+              "flex flex-col items-start gap-3 rounded-lg border p-4 text-left transition",
+              selected ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600" : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50"
+            )}
+          >
+            <span
+              className={cn(
+                "flex size-9 items-center justify-center rounded-lg",
+                selected ? "bg-brand-600 text-white" : "bg-neutral-100 text-neutral-500"
+              )}
+            >
+              <Icon className="size-[18px]" />
+            </span>
+            <span>
+              <span className="block text-sm font-semibold text-neutral-900">{label}</span>
+              <span className="block text-xs text-neutral-500">{hint}</span>
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

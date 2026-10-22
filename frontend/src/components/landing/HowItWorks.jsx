@@ -1,69 +1,42 @@
-import {
-  Search,
-  UserRoundCheck,
-  CalendarCheck,
-  BadgeCheck,
-} from "lucide-react";
+import { CalendarCheck2, CircleCheckBig, Search } from "lucide-react";
+import SectionHeader from "../shared/SectionHeader";
 
-import StepCard from "../ui/StepCard";
-
-const steps = [
+const STEPS = [
   {
-    number: "01",
-    Icon: Search,
-    title: "Search",
-    description:
-      "Choose the service you need and enter your location.",
+    icon: Search,
+    title: "Find the right professional",
+    description: "Browse by service and compare experience, location and visiting charges.",
   },
   {
-    number: "02",
-    Icon: UserRoundCheck,
-    title: "Choose Worker",
-    description:
-      "Compare ratings, experience, pricing and reviews.",
+    icon: CalendarCheck2,
+    title: "Request a booking",
+    description: "Pick a date and time, add your address and describe the job.",
   },
   {
-    number: "03",
-    Icon: CalendarCheck,
-    title: "Book Instantly",
-    description:
-      "Select a suitable time and confirm your booking.",
-  },
-  {
-    number: "04",
-    Icon: BadgeCheck,
-    title: "Get Work Done",
-    description:
-      "Track your worker, complete the job and leave a review.",
+    icon: CircleCheckBig,
+    title: "Get the job done",
+    description: "Follow the status from your bookings page until the work is complete.",
   },
 ];
 
 export default function HowItWorks() {
   return (
-    <section className="bg-slate-50 dark:bg-slate-950/20 py-24 border-b border-slate-200/55 dark:border-slate-900">
-      <div className="mx-auto max-w-7xl px-6">
-        {/* Heading */}
-        <div className="text-center">
-          <span className="rounded-full bg-blue-100 dark:bg-blue-900/35 px-4 py-2 text-sm font-semibold text-blue-700 dark:text-blue-400">
-            Simple Process
-          </span>
-
-          <h2 className="mt-6 text-5xl font-bold text-slate-900 dark:text-white">
-            How Wease Works
-          </h2>
-
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-slate-500 dark:text-slate-400">
-            Book a trusted worker in four simple steps.
-          </p>
-        </div>
-
-        {/* Steps */}
-        <div className="mt-20 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-          {steps.map((step) => (
-            <StepCard key={step.number} {...step} />
-          ))}
-        </div>
-      </div>
+    <section id="how-it-works" className="mx-auto max-w-6xl px-4 pt-14 sm:px-6">
+      <SectionHeader title="How it works" />
+      <ol className="grid gap-4 md:grid-cols-3">
+        {STEPS.map(({ icon: Icon, title, description }, index) => (
+          <li key={title} className="rounded-2xl bg-white p-6 ring-1 ring-neutral-900/5">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+                <Icon className="size-5" />
+              </span>
+              <span className="text-sm font-semibold text-neutral-400">Step {index + 1}</span>
+            </div>
+            <h3 className="mt-4 font-semibold text-neutral-900">{title}</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-neutral-500">{description}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }

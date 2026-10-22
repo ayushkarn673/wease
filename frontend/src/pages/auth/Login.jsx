@@ -1,15 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowRight } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AlertCircle, Loader2, Mail } from "lucide-react";
 import { login as authLogin } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
+import { getErrorMessage, homePathFor } from "@/lib/format";
 import AuthLayout from "../../layouts/AuthLayout";
-import AuthCard from "../../components/auth/AuthCard";
 import AuthInput from "../../components/auth/AuthInput";
 import PasswordInput from "../../components/auth/PasswordInput";
-import GoogleButton from "../../components/auth/GoogleButton";
-import AuthDivider from "../../components/auth/AuthDivider";
-import { Button } from "@/components/ui/Button";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,22 +14,18 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  // Where the visitor was before being asked to log in (e.g. a worker they wanted to book).
+  const from = location.state?.from;
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const newErrors = {};
-
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!password) {
-      newErrors.password = "Password is required";
-    }
-
+    if (!email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Enter a valid email address";
+    if (!password) newErrors.password = "Password is required";
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -40,33 +33,13 @@ export default function Login() {
 
     setErrors({});
     setLoading(true);
-
     try {
-      const response = await authLogin({ email, password });
-
+      const response = await authLogin({ email: email.trim(), password });
       login(response);
-
-      console.log("Login success:", response);
-
-      // Route by role
-      const role = response.role;
-      if (role === "WORKER") {
-        navigate("/worker/dashboard");
-      } else if (role === "ADMIN") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/customer/dashboard");
-      }
+      const canReturn = from && response.role === "CUSTOMER";
+      navigate(canReturn ? from : homePathFor(response.role), { replace: true });
     } catch (error) {
-      console.error("Login error:", error);
-      const data = error.response?.data;
-      if (data?.message) {
-        setErrors({ server: data.message });
-      } else if (error.response?.status === 403 || error.response?.status === 401) {
-        setErrors({ server: "Invalid email or password." });
-      } else {
-        setErrors({ server: "Unable to connect to server. Make sure the backend is running." });
-      }
+      setErrors({ server: getErrorMessage(error, "Invalid email or password.") });
     } finally {
       setLoading(false);
     }
@@ -74,69 +47,62 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <AuthCard>
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Welcome back 👋
-          </h2>
-          <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-455">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-blue-600 dark:text-blue-400 hover:underline">
-              Sign up
-            </Link>
-          </p>
-        </div>
+      <h1 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Welcome back</h1>
+      <p className="mt-2 text-sm text-neutral-500">
+        {from ? "Log in to continue booking." : "Log in to manage your bookings."}
+      </p>
 
-        <GoogleButton label="Continue with Google" />
+      <form onSubmit={handleLogin} noValidate className="mt-8 space-y-5">
+        {errors.server && (
+          <div role="alert" className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+            {errors.server}
+          </div>
+        )}
 
-        <AuthDivider />
+        <AuthInput
+          label="Email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          Icon={Mail}
+          error={errors.email}
+        />
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          {errors.server && (
-            <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
-              <span className="text-red-500 mt-0.5">⚠</span>
-              <p className="text-sm text-red-600 dark:text-red-400 font-semibold">{errors.server}</p>
-            </div>
-          )}
-
-          <AuthInput
-            label="Email Address"
-            type="email"
-            placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            Icon={Mail}
-            error={errors.email}
-          />
-
+        <div>
           <PasswordInput
             label="Password"
-            placeholder="••••••••"
+            autoComplete="current-password"
+            placeholder="Your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             error={errors.password}
           />
-
-          <div className="flex justify-end">
-            <Link
-              to="/forgot-password"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-semibold"
-            >
+          <div className="mt-2 text-right">
+            <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-700">
               Forgot password?
             </Link>
           </div>
+        </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-transform pt-1 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-            {!loading && <ArrowRight size={18} />}
-          </Button>
-        </form>
-      </AuthCard>
+        <button
+          type="submit"
+          disabled={loading}
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-600 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60"
+        >
+          {loading && <Loader2 className="size-4 animate-spin" />}
+          {loading ? "Logging in…" : "Log in"}
+        </button>
+      </form>
+
+      <p className="mt-8 text-center text-sm text-neutral-500">
+        New to Wease?{" "}
+        <Link to="/register" state={location.state} className="font-semibold text-brand-600 hover:text-brand-700">
+          Create an account
+        </Link>
+      </p>
     </AuthLayout>
   );
 }

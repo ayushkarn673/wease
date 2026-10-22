@@ -1,72 +1,97 @@
-import { useState } from "react";
-import { MapPin, Briefcase, BadgeCheck } from "lucide-react";
-import BookingModal from "../booking/BookingModal";
-import BookingForm from "../booking/BookingForm";
+import { createElement } from "react";
+import { Link } from "react-router-dom";
+import { BadgeCheck, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuth } from "../../context/AuthContext";
+import { formatVisitCharge, professionIcon, professionLabel, professionTint, workerDetailsPath } from "@/lib/format";
+import { formatKm } from "@/lib/geo";
+import UserAvatar from "../shared/UserAvatar";
+import { RatingBadge } from "../review/StarRating";
+import BookWorkerButton from "../booking/BookWorkerButton";
 
+// One professional in an open directory list: no card around it, just a row separated from the next by
+// a hairline. Uses only the professional's own details.
 export default function WorkerCard({ worker }) {
-  const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const years = worker.experience ?? 0;
+  const detailsPath = workerDetailsPath(user?.role, worker.id);
+  const profession = professionLabel(worker.profession);
+  const area = worker.address?.split(",")[0];
+  const intro = worker.bio?.trim() || `${profession} with ${years} ${years === 1 ? "year" : "years"} of experience.`;
 
   return (
-    <div className="rounded-3xl bg-white p-6 shadow-sm hover:shadow-lg transition">
+    <article className="group flex min-w-0 gap-4 border-b border-neutral-200/80 py-5 sm:gap-5">
+      <Link to={detailsPath} tabIndex={-1} aria-hidden="true" className="shrink-0">
+        <UserAvatar name={worker.fullName} src={worker.profilePhoto} seed={worker.id} size="lg" className="transition group-hover:scale-[1.03]" />
+      </Link>
 
-      <div className="flex items-center justify-between">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <Link to={detailsPath} className="flex items-center gap-1.5 text-base font-semibold text-neutral-900 hover:text-brand-700 sm:text-lg">
+              <span className="truncate">{worker.fullName}</span>
+              {worker.verified && <BadgeCheck className="size-4 shrink-0 text-brand-600" aria-label="Verified" />}
+              <RatingBadge average={worker.averageRating} count={worker.reviewCount} className="ml-1 shrink-0" />
+            </Link>
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-neutral-500">
+              <span className="inline-flex items-center gap-1.5 font-medium text-neutral-700">
+                <span className={cn("flex size-5 items-center justify-center rounded-full", professionTint(worker.profession).soft)}>
+                  {createElement(professionIcon(worker.profession), { className: "size-3" })}
+                </span>
+                {profession}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>
+                {years} {years === 1 ? "yr" : "yrs"} experience
+              </span>
+              {worker.distanceKm != null ? (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="font-medium text-blue-700">{formatKm(worker.distanceKm)} away</span>
+                </>
+              ) : (
+                area && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span className="truncate">{area}</span>
+                  </>
+                )
+              )}
+            </p>
+          </div>
 
-        <div>
-          <h2 className="text-xl font-bold">
-            {worker.fullName}
-          </h2>
-
-          <p className="text-slate-500">
-            {worker.profession}
-          </p>
+          <div className="hidden shrink-0 text-right sm:block">
+            <p className="text-lg font-bold leading-tight text-neutral-900">{formatVisitCharge(worker.visitingCharge)}</p>
+            <p className="text-xs text-neutral-500">visiting charge</p>
+          </div>
         </div>
 
-        {worker.verified && (
-          <BadgeCheck className="text-blue-600" />
-        )}
+        <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-relaxed text-neutral-600 [overflow-wrap:anywhere]">{intro}</p>
 
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          {worker.available !== false && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+              <span className="size-1.5 rounded-full bg-emerald-500" />
+              Taking bookings
+            </span>
+          )}
+          <span className="text-sm text-neutral-600 sm:hidden">
+            <span className="font-semibold text-neutral-900">{formatVisitCharge(worker.visitingCharge)}</span> visit
+          </span>
+          <div className="ml-auto flex items-center gap-1">
+            <Link
+              to={detailsPath}
+              className="inline-flex h-9 items-center gap-0.5 rounded-full px-3 text-sm font-semibold text-neutral-700 transition hover:bg-white hover:text-brand-700"
+            >
+              Profile
+              <ChevronRight className="size-4" />
+            </Link>
+            <BookWorkerButton worker={worker} size="sm" className="px-4">
+              Book
+            </BookWorkerButton>
+          </div>
+        </div>
       </div>
-
-      <div className="mt-5 space-y-2">
-
-        <p className="flex items-center gap-2">
-          <Briefcase size={18} />
-          {worker.experience} Years Experience
-        </p>
-
-        <p className="flex items-center gap-2">
-          <MapPin size={18} />
-          {worker.address}
-        </p>
-
-      </div>
-
-      <div className="mt-6 flex items-center justify-between">
-
-        <span className="text-2xl font-bold text-blue-600">
-          ₹{worker.hourlyRate}
-        </span>
-
-        <button
-            onClick={() => setOpen(true)}
-            className="rounded-xl bg-blue-600 px-5 py-2 text-white"
-        >
-            Book Now
-        </button>
-
-        <BookingModal
-            worker={worker}
-            isOpen={open}
-            onClose={() => setOpen(false)}
-        >
-            <BookingForm
-                worker={worker}
-                onClose={() => setOpen(false)}
-            />
-        </BookingModal>
-
-      </div>
-
-    </div>
+    </article>
   );
 }
