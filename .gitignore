@@ -44,3 +44,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Local-only notes (e.g. dev test accounts)
+*.local.md
