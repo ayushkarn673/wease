@@ -8,4 +8,6 @@ public interface UserService {
             UpdateUserRequest request,
             String email
     );
+
+    UserResponse updateCity(String city, String email);
 }

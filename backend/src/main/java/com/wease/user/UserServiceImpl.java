@@ -1,5 +1,6 @@
 package com.wease.user;
 
+import com.wease.core.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +15,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new ResourceNotFoundException("User not found"));
 
         return map(user);
     }
@@ -27,13 +28,23 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                        new ResourceNotFoundException("User not found"));
 
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
 
         userRepository.save(user);
 
+        return map(user);
+    }
+
+    @Override
+    public UserResponse updateCity(String city, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setCity(city == null || city.isBlank() ? null : city.trim());
+        userRepository.save(user);
         return map(user);
     }
 
@@ -45,6 +56,8 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(user.getRole())
+                .emailVerified(Boolean.TRUE.equals(user.getEmailVerified()))
+                .city(user.getCity())
                 .build();
     }
 }

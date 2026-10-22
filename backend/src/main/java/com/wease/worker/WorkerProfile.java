@@ -5,6 +5,8 @@ import com.wease.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "worker_profiles")
 @Getter
@@ -46,4 +48,11 @@ public class WorkerProfile extends BaseEntity {
     private Boolean available = true;
 
     private String profilePhoto;
+
+    // Pricing chosen by the worker. Null means no visiting charge has been set (treated as free).
+    @Column(precision = 10, scale = 2)
+    private BigDecimal visitingCharge;
+
+    @Enumerated(EnumType.STRING)
+    private VisitingChargePolicy visitingChargePolicy;
 }

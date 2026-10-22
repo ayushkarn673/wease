@@ -1,13 +1,12 @@
 package com.wease.core.config;
 
-import com.wease.user.UserRepository;
+import com.wease.user.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -15,14 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final UserRepository repository;
-
-    @Bean
-    UserDetailsService userDetailsService() {
-        return username ->
-                repository.findByEmail(username)
-                        .orElseThrow();
-    }
+    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,7 +26,7 @@ public class ApplicationConfig {
         DaoAuthenticationProvider provider =
                 new DaoAuthenticationProvider();
         provider.setUserDetailsService(
-                userDetailsService());
+                userDetailsService);
         provider.setPasswordEncoder(encoder);
         return provider;
     }

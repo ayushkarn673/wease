@@ -4,6 +4,7 @@ package com.wease.auth;
 
 
 
+import com.wease.core.MessageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -28,5 +29,29 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request) {
 
         return authService.login(request);
+    }
+
+    @PostMapping("/forgot-password")
+    public MessageResponse forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        authService.forgotPassword(request);
+        return new MessageResponse("If an account exists for that email, we've sent a password reset link.");
+    }
+
+    @PostMapping("/reset-password")
+    public MessageResponse resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        authService.resetPassword(request);
+        return new MessageResponse("Your password has been updated. You can now log in.");
+    }
+
+    @PostMapping("/verify-email")
+    public MessageResponse verifyEmail(
+            @Valid @RequestBody VerifyEmailRequest request) {
+
+        authService.verifyEmail(request);
+        return new MessageResponse("Your email address is verified.");
     }
 }

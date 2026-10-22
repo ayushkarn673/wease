@@ -1,5 +1,7 @@
 package com.wease.user;
 
+import com.wease.auth.AuthService;
+import com.wease.core.MessageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final AuthService authService;
 
     @GetMapping("/profile")
     public UserResponse profile(
@@ -41,6 +44,17 @@ public class UserController {
 
         );
 
+    }
+
+    @PutMapping("/city")
+    public UserResponse updateCity(@Valid @RequestBody UpdateCityRequest request, Authentication authentication) {
+        return userService.updateCity(request.getCity(), authentication.getName());
+    }
+
+    @PostMapping("/resend-verification")
+    public MessageResponse resendVerification(Authentication authentication) {
+        authService.resendVerification(authentication.getName());
+        return new MessageResponse("We've sent a new verification link to your email.");
     }
 
 }

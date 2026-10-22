@@ -47,7 +47,15 @@ public class User extends BaseEntity implements UserDetails {
     @Builder.Default
     private Boolean enabled = true;
 
+    // Accounts created before verification existed have NULL here and are treated as unverified.
+    @Builder.Default
+    private Boolean emailVerified = false;
+
     private String profileImage;
+
+    // City the customer is browsing in (e.g. "Pune"); null means all cities.
+    @Column(length = 60)
+    private String city;
 
     @JsonIgnore
     @Override

@@ -61,4 +61,12 @@ public class BookingController {
     ) {
         return bookingService.completeBooking(id, authentication.getName());
     }
+
+    @PutMapping("/{id}/cancel")
+    public BookingResponse cancel(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        return bookingService.cancelBooking(id, authentication.getName());
+    }
 }

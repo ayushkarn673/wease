@@ -21,6 +21,15 @@ public class BookingRequest {
     @NotBlank(message = "Service address is required")
     private String serviceAddress;
 
+    @NotNull(message = "Pin the service location on the map")
+    private Double serviceLatitude;
+
+    @NotNull(message = "Pin the service location on the map")
+    private Double serviceLongitude;
+
     @NotBlank(message = "Description is required")
     private String description;
+
+    // Optional; defaults to cash. Online payment is not available yet.
+    private PaymentMethod paymentMethod;
 }

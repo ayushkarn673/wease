@@ -20,8 +20,15 @@ public class WorkerController {
     private final WorkerService workerService;
 
     @GetMapping
-    public List<WorkerResponse> getWorkers() {
-        return workerService.getAllAvailableWorkers();
+    public List<WorkerResponse> getWorkers(
+            @RequestParam(required = false) Profession profession,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String city,
+            // Customer's location: only professionals whose 10 km area covers it are returned.
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lng
+    ) {
+        return workerService.searchAvailableWorkers(profession, q, city, lat, lng);
     }
 
     @GetMapping("/{id}")
@@ -38,6 +45,42 @@ public class WorkerController {
                 request,
                 authentication.getName()
         );
+    }
+
+    @GetMapping("/profile")
+    public WorkerResponse getProfile(
+            Authentication authentication
+    ) {
+        return workerService.getProfile(
+                authentication.getName()
+        );
+    }
+
+    @PutMapping("/profile")
+    public WorkerResponse updateProfile(
+            @Valid @RequestBody WorkerUpdateRequest request,
+            Authentication authentication
+    ) {
+        return workerService.updateProfile(
+                request,
+                authentication.getName()
+        );
+    }
+
+    @PutMapping("/pricing")
+    public WorkerResponse updatePricing(
+            @Valid @RequestBody PricingRequest request,
+            Authentication authentication
+    ) {
+        return workerService.updatePricing(request, authentication.getName());
+    }
+
+    @PutMapping("/location")
+    public WorkerResponse updateLocation(
+            @Valid @RequestBody LocationRequest request,
+            Authentication authentication
+    ) {
+        return workerService.updateLocation(request, authentication.getName());
     }
 
     @PutMapping("/availability")

@@ -32,6 +32,11 @@ public interface BookingService {
             String workerEmail
     );
 
+    BookingResponse cancelBooking(
+            Long bookingId,
+            String customerEmail
+    );
+
     BookingResponse getBookingDetails(
             Long bookingId,
             String email

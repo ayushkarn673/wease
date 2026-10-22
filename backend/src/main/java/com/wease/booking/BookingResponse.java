@@ -17,6 +17,8 @@ public class BookingResponse {
 
     private String workerName;
 
+    private Long workerProfileId;
+
     private String profession;
 
     private LocalDate bookingDate;
@@ -25,6 +27,10 @@ public class BookingResponse {
 
     private String serviceAddress;
 
+    private Double serviceLatitude;
+
+    private Double serviceLongitude;
+
     private Double estimatedPrice;
 
     private BookingStatus status;
@@ -32,4 +38,14 @@ public class BookingResponse {
     private Double finalPrice;
 
     private String description;
+
+    private QuoteState quoteState;
+
+    private PaymentMethod paymentMethod;
+
+    private PaymentStatus paymentStatus;
+
+    private BookingBill bill;
+
+    private Integer customerRating;
 }

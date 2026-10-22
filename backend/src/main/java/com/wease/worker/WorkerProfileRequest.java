@@ -18,7 +18,7 @@ public class WorkerProfileRequest {
     @NotBlank
     private String bio;
 
-    @NotNull
+    // No longer asked for: labour is quoted per job after inspection. Kept optional for older clients.
     @Positive
     private Double hourlyRate;
 

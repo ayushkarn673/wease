@@ -1,9 +1,13 @@
 package com.wease.worker;
 
 import com.wease.booking.Booking;
+import com.wease.booking.BookingMapper;
+import com.wease.review.RatingStats;
+import com.wease.review.ReviewService;
 import com.wease.booking.BookingRepository;
 import com.wease.booking.BookingResponse;
 import com.wease.booking.BookingStatus;
+import com.wease.core.exception.ResourceNotFoundException;
 import com.wease.user.User;
 import com.wease.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +23,16 @@ public class WorkerDashboardServiceImpl implements WorkerDashboardService {
     private final UserRepository userRepository;
     private final WorkerProfileRepository workerProfileRepository;
     private final BookingRepository bookingRepository;
+    private final BookingMapper bookingMapper;
+    private final ReviewService reviewService;
 
     @Override
     public WorkerDashboardResponse getDashboardData(String workerEmail) {
         User workerUser = userRepository.findByEmail(workerEmail)
-                .orElseThrow(() -> new RuntimeException("Worker user not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Worker user not found"));
 
         WorkerProfile workerProfile = workerProfileRepository.findByUser(workerUser)
-                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Worker profile not found"));
 
         List<Booking> bookings = bookingRepository.findByWorkerProfile(workerProfile);
         LocalDate today = LocalDate.now();
@@ -49,13 +55,14 @@ public class WorkerDashboardServiceImpl implements WorkerDashboardService {
         double todayEarnings = bookings.stream()
                 .filter(b -> b.getStatus() == BookingStatus.COMPLETED 
                         && b.getBookingDate().equals(today))
-                .mapToDouble(b -> b.getFinalPrice() != null ? b.getFinalPrice() : b.getEstimatedPrice())
+                // What the worker keeps after Wease's commission.
+                .mapToDouble(b -> bookingMapper.toResponse(b).getBill().workerEarning().doubleValue())
                 .sum();
 
         // Sort bookings by creation date or ID descending to get recent jobs first
         List<BookingResponse> recentBookings = bookings.stream()
                 .sorted((b1, b2) -> b2.getId().compareTo(b1.getId()))
-                .map(this::toResponse)
+                .map(bookingMapper::toResponse)
                 .toList();
 
         return WorkerDashboardResponse.builder()
@@ -63,25 +70,12 @@ public class WorkerDashboardServiceImpl implements WorkerDashboardService {
                 .pendingRequests((int) pendingRequests)
                 .completedJobs((int) completedJobs)
                 .todayEarnings(todayEarnings)
-                .rating(4.9) // Default rating
+                // Real average from customer reviews; null until the first review.
+                .rating(reviewService.statsFor(List.of(workerProfile.getId()))
+                        .getOrDefault(workerProfile.getId(), RatingStats.NONE).average())
                 .available(workerProfile.getAvailable())
                 .recentBookings(recentBookings)
                 .build();
     }
 
-    private BookingResponse toResponse(Booking booking) {
-        return BookingResponse.builder()
-                .bookingId(booking.getId())
-                .customerName(booking.getCustomer().getFullName())
-                .workerName(booking.getWorkerProfile().getUser().getFullName())
-                .profession(booking.getWorkerProfile().getProfession().name())
-                .bookingDate(booking.getBookingDate())
-                .bookingTime(booking.getBookingTime())
-                .serviceAddress(booking.getServiceAddress())
-                .estimatedPrice(booking.getEstimatedPrice())
-                .status(booking.getStatus())
-                .finalPrice(booking.getFinalPrice())
-                .description(booking.getDescription())
-                .build();
-    }
 }
