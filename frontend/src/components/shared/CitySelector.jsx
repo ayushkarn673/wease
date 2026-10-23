@@ -15,7 +15,8 @@ import {
 
 // "📍 Baner, Pune ▾" picker in the top bar. An exact location shows professionals whose 10 km area
 // covers it; a city shows everyone in that city (and is used for labour firms).
-export default function CitySelector({ className }) {
+// `compact` shrinks it to a round pin icon on phones, leaving room for Log in / Sign up.
+export default function CitySelector({ className, compact = false }) {
   const { city, setCity, saving, location, setLocation } = useCity();
   const [pickerOpen, setPickerOpen] = useState(false);
   const label = location?.label ?? city ?? "All cities";
@@ -29,6 +30,7 @@ export default function CitySelector({ className }) {
             aria-label={`Location: ${label}. Change location`}
             className={cn(
               "inline-flex h-9 min-w-0 max-w-[9.5rem] items-center sm:max-w-44 gap-1.5 rounded-full border border-neutral-200 bg-white pl-2.5 pr-2 text-sm font-medium text-neutral-800 transition hover:border-neutral-300 hover:bg-neutral-50",
+              compact && "w-9 shrink-0 justify-center px-0 sm:w-auto sm:justify-start sm:pl-2.5 sm:pr-2",
               className
             )}
           >
@@ -39,8 +41,8 @@ export default function CitySelector({ className }) {
             ) : (
               <MapPin className="size-4 shrink-0 text-brand-700" />
             )}
-            <span className="truncate">{label}</span>
-            <ChevronDown className="size-3.5 shrink-0 text-neutral-400" />
+            <span className={cn("truncate", compact && "hidden sm:inline")}>{label}</span>
+            <ChevronDown className={cn("size-3.5 shrink-0 text-neutral-400", compact && "hidden sm:block")} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-60">

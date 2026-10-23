@@ -35,7 +35,8 @@ export default function AppHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200/80 bg-white/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-8 sm:px-6">
-        <BrandLogo to={homePathFor(user?.role)} />
+        {/* On very small phones only the logo mark shows, so Log in and Sign up both fit. */}
+        <BrandLogo to={homePathFor(user?.role)} nameClassName={user ? undefined : "max-[359px]:hidden"} />
 
         <nav className="hidden h-full items-center gap-1 md:flex" aria-label="Main">
           {links.map((link) => (
@@ -58,20 +59,20 @@ export default function AppHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          {(!user || user.role === "CUSTOMER") && <CitySelector />}
+          {(!user || user.role === "CUSTOMER") && <CitySelector compact={!user} />}
           {!user && (
             <>
               <Link
                 to="/login"
                 state={{ from: location.pathname + location.search }}
-                className="hidden h-9 items-center rounded-full px-3 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 sm:inline-flex"
+                className="inline-flex h-9 shrink-0 items-center rounded-full px-2.5 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 sm:px-3"
               >
                 Log in
               </Link>
               <Link
                 to="/register"
                 state={{ from: location.pathname + location.search }}
-                className="inline-flex h-9 items-center rounded-full bg-brand-700 px-4 text-sm font-semibold text-white transition hover:bg-brand-800"
+                className="inline-flex h-9 shrink-0 items-center rounded-full bg-brand-700 px-3.5 text-sm font-semibold text-white transition hover:bg-brand-800 sm:px-4"
               >
                 Sign up
               </Link>
