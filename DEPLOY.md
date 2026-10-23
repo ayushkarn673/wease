@@ -1,16 +1,18 @@
 # Deploying Wease for free
 
-Wease has three parts, and each goes to a free host that can run it:
+Wease has three parts. The website and the API both go to Render; the database goes to a hosted MySQL:
 
-| Part | Host | Why |
+| Part | Host | How |
 |---|---|---|
-| Website (React, `frontend/`) | **Vercel** (Hobby plan) | Vercel serves static sites; it cannot run Java |
+| Website (React, `frontend/`) | **Render Static Site** (free) | Built with `npm run build`, served from `frontend/dist` |
 | API (Spring Boot, `backend/`) | **Render** free web service (Docker) | Runs the Java server from `backend/Dockerfile` |
 | Database (MySQL) | **Aiven** free MySQL (or TiDB Cloud Serverless) | Hosted MySQL with a free plan |
 
+Both Render services are defined in `render.yaml`, so one **Blueprint** creates them together.
+
 > Free plans change over time. Check each provider's current limits before relying on them.
-> Render's free service **sleeps after ~15 minutes without traffic**; the next request takes
-> 30–60 seconds while it wakes up.
+> Render's free API service **sleeps after ~15 minutes without traffic**; the next request takes
+> 30–60 seconds while it wakes up. The static website does not sleep.
 
 You create the accounts and paste the secrets yourself — nothing secret is stored in this repo.
 
@@ -18,7 +20,7 @@ You create the accounts and paste the secrets yourself — nothing secret is sto
 
 ## 0. Push the code to GitHub
 
-Vercel and Render deploy from the GitHub repo (`ayushkarn673/wease`). Commit and push `main` first.
+Render deploys from the GitHub repo (`ayushkarn673/wease`). Commit and push `main` first.
 `backend/.env` and `*.local.md` are git-ignored, so local passwords and test logins stay on your PC.
 
 ## 1. Database (Aiven MySQL)
@@ -34,64 +36,52 @@ The tables are created automatically on first start (`spring.jpa.hibernate.ddl-a
 On a new, empty database you do **not** need `db/manual/2026-10-22-add-firm-role.sql`; that was only
 for the existing local database.
 
-## 2. API (Render)
+## 2. API and website (Render Blueprint)
 
 1. Sign up at render.com with GitHub → **New** → **Blueprint** → pick the `wease` repo.
-   Render reads `render.yaml` and creates the `wease-api` web service (Docker, `backend/`, free).
+   Render reads `render.yaml` and creates two services:
+   - `wease-api` — the API (address like `https://wease-api.onrender.com`)
+   - `wease-web` — the website (address like `https://wease-web.onrender.com`)
+
+   If a name is taken, Render adds a suffix; use the real addresses it shows below.
 2. Fill in the environment variables it asks for:
 
-   | Key | Value |
-   |---|---|
-   | `DB_URL` | the JDBC URL from step 1 |
-   | `DB_USERNAME` | `avnadmin` (or your DB user) |
-   | `DB_PASSWORD` | the database password |
-   | `JWT_SECRET` | a new random secret: run `openssl rand -base64 64` (don't reuse your local one) |
-   | `CORS_ALLOWED_ORIGINS` | leave as `http://localhost:5173` for now; set in step 4 |
-   | `FRONTEND_URL` | leave empty for now; set in step 4 |
+   | Service | Key | Value |
+   |---|---|---|
+   | wease-api | `DB_URL` | the JDBC URL from step 1 |
+   | wease-api | `DB_USERNAME` | `avnadmin` (or your DB user) |
+   | wease-api | `DB_PASSWORD` | the database password |
+   | wease-api | `JWT_SECRET` | a new random secret: run `openssl rand -base64 64` (don't reuse your local one) |
+   | wease-api | `CORS_ALLOWED_ORIGINS` | `https://wease-web.onrender.com` |
+   | wease-api | `FRONTEND_URL` | `https://wease-web.onrender.com` (used in email links) |
+   | wease-api | `GOOGLE_CLIENT_ID` | leave empty for now; see step 3 |
+   | wease-web | `VITE_API_URL` | `https://wease-api.onrender.com/api` |
+   | wease-web | `VITE_GOOGLE_CLIENT_ID` | leave empty for now; see step 3 |
 
-3. Deploy. When it's live, open `https://<your-service>.onrender.com/api/workers` — you should see `[]`.
+3. **Apply.** When both are live:
+   - `https://wease-api.onrender.com/api/workers` shows `[]`
+   - `https://wease-web.onrender.com` shows the Wease home page
 
-## 3. Website (Vercel)
+If Render gave different addresses than the ones above, update `CORS_ALLOWED_ORIGINS`, `FRONTEND_URL`
+and `VITE_API_URL` to match. A change to a `VITE_` variable needs a new deploy of `wease-web`
+(**Manual Deploy → Deploy latest commit**), because it is built into the website.
 
-1. Sign up at vercel.com with GitHub → **Add New… → Project** → import `wease`.
-2. Set **Root Directory** to `frontend`. Framework preset: **Vite** (build `npm run build`, output `dist`).
-3. Add the environment variable:
+## 3. Google Sign-In and phone codes
 
-   | Key | Value |
-   |---|---|
-   | `VITE_API_URL` | `https://<your-service>.onrender.com/api` |
-
-4. Deploy. You'll get an address like `https://wease.vercel.app`.
-
-`frontend/vercel.json` sends every page address to the app, so links such as `/workers/17` work on refresh.
-
-## 4. Connect them
-
-Back in Render → `wease-api` → **Environment**:
-
-| Key | Value |
-|---|---|
-| `CORS_ALLOWED_ORIGINS` | `https://wease.vercel.app` (your Vercel address; add `,https://*.vercel.app` to also allow preview deployments) |
-| `FRONTEND_URL` | `https://wease.vercel.app` (used in password-reset and verification email links) |
-
-Save — Render redeploys. Then open your Vercel site, register, and try the app.
-
-## 5. Google Sign-In and phone codes
-
-**Google Sign-In** (free):
+**Google Sign-In** (free) — needed for new visitors to sign up until SMS is connected:
 1. Go to console.cloud.google.com → create a project → **APIs & Services → OAuth consent screen**
    (External, app name "Wease", your email).
 2. **Credentials → Create credentials → OAuth client ID → Web application.**
-   Under **Authorized JavaScript origins** add `http://localhost:5173` and your Vercel address
-   (e.g. `https://wease.vercel.app`).
-3. Copy the **Client ID** and set it in two places:
-   - Render → `GOOGLE_CLIENT_ID`
-   - Vercel → `VITE_GOOGLE_CLIENT_ID` (then redeploy the site)
+   Under **Authorized JavaScript origins** add `http://localhost:5173` and your website address
+   (e.g. `https://wease-web.onrender.com`).
+3. Copy the **Client ID** and set it in two places on Render:
+   - `wease-api` → `GOOGLE_CLIENT_ID`
+   - `wease-web` → `VITE_GOOGLE_CLIENT_ID` (then redeploy the website)
 
-**Phone codes (OTP):** until an SMS provider is connected, codes are written to the Render log
+**Phone codes (OTP):** until an SMS provider is connected, codes are written to the `wease-api` log
 (`SMS_PROVIDER=log`), which is fine for testing but **not for real users**. Before launch, sign up with an
-Indian SMS provider such as MSG91 or Twilio, complete DLT registration (sender ID + OTP template), and add
-its sender in `backend/src/main/java/com/wease/core/sms/` next to `LogSmsSender`.
+SMS provider such as MSG91 or Twilio (Indian numbers need DLT registration: sender ID + OTP template),
+and add its sender in `backend/src/main/java/com/wease/core/sms/` next to `LogSmsSender`.
 
 ## After deploying
 

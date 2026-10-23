@@ -159,8 +159,8 @@ All endpoints are under `/api`. Browsing is public; everything else needs a logi
 
 ## Deployment
 
-The website deploys to **Vercel**, the API to **Render** (Docker) and the database to a hosted MySQL
-such as **Aiven**, all on free plans. See **[DEPLOY.md](DEPLOY.md)** for the step-by-step guide.
+The website (static site) and the API (Docker) both deploy to **Render** from `render.yaml`, and the
+database to a hosted MySQL such as **Aiven**, all on free plans. See **[DEPLOY.md](DEPLOY.md)** for the step-by-step guide.
 
 ---
 

@@ -1,4 +1,4 @@
-# Render Blueprint for the Wease API (free web service, built from backend/Dockerfile).
+# Render Blueprint for Wease: the API (free Docker web service) and the website (free static site).
 # Values marked sync: false are entered in the Render dashboard; they are never stored in git.
 services:
   - type: web
@@ -21,4 +21,23 @@ services:
       - key: FRONTEND_URL
         sync: false
       - key: GOOGLE_CLIENT_ID
+        sync: false
+
+  - type: web
+    name: wease-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    # Every page address loads the React app, so links such as /workers/17 work on refresh.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
         sync: false
