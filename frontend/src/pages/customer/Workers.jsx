@@ -98,7 +98,7 @@ export default function Workers() {
       </HeroPanel>
 
       <div className="lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:items-start lg:gap-8">
-        <aside className="hidden lg:sticky lg:top-24 lg:block" aria-label="Services">
+        <aside className="hidden lg:sticky lg:top-6 lg:block" aria-label="Services">
           <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-neutral-400">Services</p>
           <nav className="space-y-0.5">
             {OPTIONS.map(({ value, label, icon: Icon, tint }) => (

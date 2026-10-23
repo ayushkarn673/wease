@@ -166,7 +166,7 @@ export default function WorkerDetails() {
           </section>
         </div>
 
-        <aside className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xl shadow-neutral-900/[0.04] lg:sticky lg:top-24">
+        <aside className="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-xl shadow-neutral-900/[0.04] lg:sticky lg:top-6">
           <p className="text-sm font-semibold text-neutral-900">Book this professional</p>
           <p className="mt-3 flex items-baseline gap-2">
             <span className="text-3xl font-bold tracking-tight text-neutral-900">{formatVisitCharge(worker.visitingCharge)}</span>
