@@ -1,5 +1,22 @@
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+    /* Brand: deep teal. 600 is the primary color used for headers and actions. */
+    --color-brand-50: #eaf3f1;
+    --color-brand-100: #d5e8e3;
+    --color-brand-200: #acd1c7;
+    --color-brand-300: #7fb5a8;
+    --color-brand-400: #4f9585;
+    --color-brand-500: #2f7a6b;
+    --color-brand-600: #1f5f56;
+    --color-brand-700: #184d46;
+    --color-brand-800: #133e38;
+    --color-brand-900: #0d2b27;
+
+    /* App canvas behind the white cards. */
+    --color-surface: #f2f5f4;
+}
+
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Plus Jakarta Sans', 'Geist Variable', sans-serif;
@@ -41,21 +58,6 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
-
-    /* Brand: deep teal. 600 is the primary color used for headers and actions. */
-    --color-brand-50: #eaf3f1;
-    --color-brand-100: #d5e8e3;
-    --color-brand-200: #acd1c7;
-    --color-brand-300: #7fb5a8;
-    --color-brand-400: #4f9585;
-    --color-brand-500: #2f7a6b;
-    --color-brand-600: #1f5f56;
-    --color-brand-700: #184d46;
-    --color-brand-800: #133e38;
-    --color-brand-900: #0d2b27;
-
-    /* App canvas behind the white cards. */
-    --color-surface: #f2f5f4;
 }
 
 :root {
@@ -94,32 +96,33 @@
     --sidebar-ring: #2563EB;
 }
 
+/* Dark mode (follows the phone/computer setting; see index.html). Wease's teal on a deep green-black. */
 .dark {
-    --background: #020617;
-    --foreground: #F8FAFC;
-    --card: #0F172A;
-    --card-foreground: #F8FAFC;
-    --popover: #0F172A;
-    --popover-foreground: #F8FAFC;
-    --primary: #3B82F6;
-    --primary-foreground: #020617;
-    --secondary: #1E293B;
-    --secondary-foreground: #F8FAFC;
-    --muted: #1E293B;
-    --muted-foreground: #94A3B8;
-    --accent: #2DD4BF;
-    --accent-foreground: #020617;
-    --destructive: #EF4444;
-    --destructive-foreground: #FFFFFF;
-    --border: #1E293B;
-    --input: #1E293B;
-    --ring: #3B82F6;
-    --sidebar: #0F172A;
-    --sidebar-foreground: #F8FAFC;
-    --sidebar-primary: #3B82F6;
-    --sidebar-primary-foreground: #020617;
-    --sidebar-accent: #1E293B;
-    --sidebar-accent-foreground: #F8FAFC;
-    --sidebar-border: #1E293B;
-    --sidebar-ring: #3B82F6;
+    --background: #0B1210;
+    --foreground: #E6EEEB;
+    --card: #121A18;
+    --card-foreground: #E6EEEB;
+    --popover: #151E1B;
+    --popover-foreground: #E6EEEB;
+    --primary: #4F9585;
+    --primary-foreground: #06110F;
+    --secondary: #18231F;
+    --secondary-foreground: #CFE7E0;
+    --muted: #18231F;
+    --muted-foreground: #93A39E;
+    --accent: #1A2A26;
+    --accent-foreground: #CFE7E0;
+    --destructive: #F87171;
+    --destructive-foreground: #0B1210;
+    --border: #24302C;
+    --input: #2A3833;
+    --ring: #4F9585;
+    --sidebar: #121A18;
+    --sidebar-foreground: #E6EEEB;
+    --sidebar-primary: #4F9585;
+    --sidebar-primary-foreground: #06110F;
+    --sidebar-accent: #1A2A26;
+    --sidebar-accent-foreground: #E6EEEB;
+    --sidebar-border: #24302C;
+    --sidebar-ring: #4F9585;
 }

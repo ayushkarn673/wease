@@ -1,5 +1,5 @@
 /* wease loader — the crane lowers the last block onto the W, lets go, goes back up, repeats.
-   Shown on first load until the app is ready (see index.html). Wease is light-only, so no dark colours. */
+   Shown on first load until the app is ready (see index.html). Follows the device's light/dark setting. */
 
 :root {
   --wl-bg: #f3f6f4;
@@ -10,6 +10,14 @@
   --wl-cube-front: #eef1ef;
   --wl-cube-side: #8db4a6;
   --wl-cycle: 4s; /* one full lower → release → return trip */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --wl-bg: #0b1210;
+    --wl-ink: #e6eeeb;
+    --wl-muted: #93a39e;
+  }
 }
 
 .wease-loader {

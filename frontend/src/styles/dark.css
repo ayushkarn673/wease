@@ -1,0 +1,207 @@
+/* Dark mode. index.html adds the "dark" class to <html> when the phone or computer is set to dark.
+   Components use fixed light colours (white cards, grey text, soft tints); these rules swap them for dark
+   equivalents. Solid buttons, and white text on coloured backgrounds, keep their colours.
+   This file is not in a cascade layer, so it overrides Tailwind's utilities. */
+
+.dark {
+  color-scheme: dark;
+
+  /* Page canvas behind the cards */
+  --color-surface: #0b1210;
+
+  /* Greys, flipped: light backgrounds become dark and dark text becomes light. */
+  --color-neutral-50: #16201d;
+  --color-neutral-100: #1b2623;
+  --color-neutral-200: #26332f;
+  --color-neutral-300: #34443f;
+  --color-neutral-400: #6f807a;
+  --color-neutral-500: #93a39e;
+  --color-neutral-600: #b2c0bb;
+  --color-neutral-700: #cad5d1;
+  --color-neutral-800: #dde5e2;
+  --color-neutral-900: #ecf2f0;
+  --color-neutral-950: #f5f9f7;
+
+  /* Brand tints (backgrounds, borders) become deep teal; the solid brand colours stay. */
+  --color-brand-50: #13231f;
+  --color-brand-100: #183029;
+  --color-brand-200: #23453c;
+
+  /* Soft tints (50-200) of the other colours become dark tints; dark text shades (700-900) become light. */
+  --color-red-50: #2f1f1e;
+  --color-red-100: #3e2221;
+  --color-red-200: #5d2827;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fdc0c0;
+  --color-red-900: #fed2d2;
+  --color-amber-50: #302b16;
+  --color-amber-100: #3f3415;
+  --color-amber-200: #5f4714;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde082;
+  --color-amber-900: #fee9a6;
+  --color-emerald-50: #122f26;
+  --color-emerald-100: #123a2d;
+  --color-emerald-200: #11503c;
+  --color-emerald-700: #6ee7b7;
+  --color-emerald-800: #9aeecd;
+  --color-emerald-900: #b6f3db;
+  --color-green-50: #143021;
+  --color-green-100: #153c26;
+  --color-green-200: #175430;
+  --color-green-700: #86efac;
+  --color-green-800: #aaf4c5;
+  --color-green-900: #c2f7d6;
+  --color-sky-50: #112c33;
+  --color-sky-100: #113642;
+  --color-sky-200: #11495f;
+  --color-sky-700: #7dd3fc;
+  --color-sky-800: #a4e0fd;
+  --color-sky-900: #bee9fe;
+  --color-blue-50: #172835;
+  --color-blue-100: #1a2f44;
+  --color-blue-200: #203d63;
+  --color-blue-700: #93c5fd;
+  --color-blue-800: #b3d6fe;
+  --color-blue-900: #c9e2fe;
+  --color-violet-50: #222335;
+  --color-violet-100: #2a2744;
+  --color-violet-200: #3b3063;
+  --color-violet-700: #c4b5fd;
+  --color-violet-800: #d6cbfe;
+  --color-violet-900: #e2dafe;
+  --color-teal-50: #122f2a;
+  --color-teal-100: #123a34;
+  --color-teal-200: #135048;
+  --color-teal-700: #5eead4;
+  --color-teal-800: #8ef0e1;
+  --color-teal-900: #aef4ea;
+  --color-lime-50: #213118;
+  --color-lime-100: #293e18;
+  --color-lime-200: #395717;
+  --color-lime-700: #bef264;
+  --color-lime-800: #d2f692;
+  --color-lime-900: #def8b2;
+  --color-rose-50: #2f1f21;
+  --color-rose-100: #3f2126;
+  --color-rose-200: #5f2730;
+  --color-rose-700: #fda4af;
+  --color-rose-800: #febfc7;
+  --color-rose-900: #fed2d7;
+  --color-orange-50: #302618;
+  --color-orange-100: #402c18;
+  --color-orange-200: #613817;
+  --color-orange-700: #fdba74;
+  --color-orange-800: #fecf9e;
+  --color-orange-900: #fedcba;
+  --color-indigo-50: #1d2434;
+  --color-indigo-100: #222943;
+  --color-indigo-200: #2e3462;
+  --color-indigo-700: #a5b4fc;
+  --color-indigo-800: #c0cafd;
+  --color-indigo-900: #d2dafe;
+  --color-cyan-50: #102e30;
+  --color-cyan-100: #10393e;
+  --color-cyan-200: #0e4f58;
+  --color-cyan-700: #67e8f9;
+  --color-cyan-800: #95effb;
+  --color-cyan-900: #b3f4fc;
+  --color-stone-50: #1f2523;
+  --color-stone-100: #262b29;
+  --color-stone-200: #353835;
+  --color-stone-700: #d6d3d1;
+  --color-stone-800: #e2e0df;
+  --color-stone-900: #eae9e8;
+  --color-yellow-50: #2e2e16;
+  --color-yellow-100: #3d3915;
+  --color-yellow-200: #5b4e13;
+  --color-yellow-700: #fde047;
+  --color-yellow-800: #fee97e;
+  --color-yellow-900: #fef0a3;
+  --color-pink-50: #2e2029;
+  --color-pink-100: #3e2332;
+  --color-pink-200: #5c2a44;
+  --color-pink-700: #f9a8d4;
+  --color-pink-800: #fbc2e1;
+  --color-pink-900: #fcd4ea;
+  --color-purple-50: #262235;
+  --color-purple-100: #302645;
+  --color-purple-200: #452e64;
+  --color-purple-700: #d8b4fe;
+  --color-purple-800: #e4cafe;
+  --color-purple-900: #ecdafe;
+  --color-fuchsia-50: #2c2034;
+  --color-fuchsia-100: #3a2343;
+  --color-fuchsia-200: #562961;
+  --color-fuchsia-700: #f0abfc;
+  --color-fuchsia-800: #f4c4fd;
+  --color-fuchsia-900: #f8d5fe;
+  --color-slate-50: #1d2627;
+  --color-slate-100: #222c2f;
+  --color-slate-200: #2e393f;
+  --color-slate-700: #cbd5e1;
+}
+
+/* White surfaces: cards, the top bar, inputs, menus */
+.dark .bg-white,
+.dark .bg-white\/80,
+.dark .bg-white\/90,
+.dark .bg-white\/95,
+.dark .hover\:bg-white:hover {
+  background-color: var(--card);
+}
+.dark .border-white {
+  border-color: var(--card);
+}
+.dark .ring-white {
+  --tw-ring-color: var(--card);
+}
+
+/* Brand-coloured text and links: lighter teal so they read on dark */
+.dark .text-brand-600,
+.dark .text-brand-700,
+.dark .hover\:text-brand-600:hover,
+.dark .hover\:text-brand-700:hover,
+.dark .group:hover .group-hover\:text-brand-600,
+.dark .group:hover .group-hover\:text-brand-700 {
+  color: #7fb5a8;
+}
+.dark .text-brand-800,
+.dark .hover\:text-brand-800:hover {
+  color: #acd1c7;
+}
+.dark .text-brand-900 {
+  color: #cfe7e0;
+}
+/* Pale brand text sits on the green panels, which stay green */
+.dark .text-brand-100 {
+  color: #d5e8e3;
+}
+.dark .text-brand-200 {
+  color: #acd1c7;
+}
+
+/* Hover colours of solid buttons stay solid */
+.dark .hover\:bg-emerald-700:hover {
+  background-color: #047857;
+}
+.dark .hover\:bg-red-700:hover {
+  background-color: #b91c1c;
+}
+
+/* Maps: darken the OpenStreetMap tiles and the zoom buttons */
+.dark .leaflet-container {
+  background: #0b1210;
+}
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6);
+}
+.dark .leaflet-bar a,
+.dark .leaflet-control-attribution {
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  border-color: var(--border) !important;
+}
+.dark .leaflet-control-attribution a {
+  color: #7fb5a8 !important;
+}

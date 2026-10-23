@@ -17,7 +17,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <MotionConfig reducedMotion="user">
           <App />
         </MotionConfig>
-        <Toaster position="top-right" theme="light" closeButton />
+        <Toaster position="top-right" theme="system" closeButton />
       </CityProvider>
     </AuthProvider>
   </BrowserRouter>
