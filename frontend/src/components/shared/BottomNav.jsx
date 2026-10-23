@@ -1,11 +1,13 @@
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../../context/AuthContext";
-import { NAV } from "./navigation";
+import { NAV, REQUESTS_PATH } from "./navigation";
+import { usePendingRequests } from "../../context/requests";
 
 // Mobile tab bar: icons only, the active tab expands into a teal pill with its label.
 export default function BottomNav() {
   const { user } = useAuth();
+  const pending = usePendingRequests();
   const links = (user ? NAV[user.role] : NAV.GUEST) ?? [];
   if (links.length < 2) return null;
 
@@ -30,7 +32,10 @@ export default function BottomNav() {
             >
               {({ isActive }) => (
                 <>
-                  <Icon className="size-5" />
+                  <span className="relative">
+                    <Icon className="size-5" />
+                    {to === REQUESTS_PATH && pending > 0 && <CountBadge count={pending} />}
+                  </span>
                   {isActive && <span className="text-sm font-semibold">{label}</span>}
                 </>
               )}
@@ -39,5 +44,13 @@ export default function BottomNav() {
         ))}
       </ul>
     </nav>
+  );
+}
+
+function CountBadge({ count }) {
+  return (
+    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+      {count > 9 ? "9+" : count}
+    </span>
   );
 }

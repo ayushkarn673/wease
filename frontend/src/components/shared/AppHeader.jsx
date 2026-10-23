@@ -6,7 +6,8 @@ import { displayEmail, homePathFor } from "@/lib/format";
 import BrandLogo from "./BrandLogo";
 import CitySelector from "./CitySelector";
 import UserAvatar from "./UserAvatar";
-import { NAV, ROLE_LABEL } from "./navigation";
+import { NAV, REQUESTS_PATH, ROLE_LABEL } from "./navigation";
+import { usePendingRequests } from "../../context/requests";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ const PROFILE_PATH = { CUSTOMER: "/customer/profile", WORKER: "/worker/profile",
 // see Log in / Sign up instead of the account menu.
 export default function AppHeader() {
   const { user, logout } = useAuth();
+  const pending = usePendingRequests();
   const navigate = useNavigate();
   const location = useLocation();
   const links = (user ? NAV[user.role] : NAV.GUEST.slice(0, 3)) ?? [];
@@ -54,6 +56,11 @@ export default function AppHeader() {
               }
             >
               {link.label}
+              {link.to === REQUESTS_PATH && pending > 0 && (
+                <span className="ml-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[11px] font-bold text-white">
+                  {pending}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

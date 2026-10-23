@@ -34,7 +34,8 @@ export function isInIndia(lat, lng) {
   return lat >= 6 && lat <= 37.5 && lng >= 68 && lng <= 97.5;
 }
 
-// Directions in the visitor's own maps app (no API key needed).
-export function directionsUrl(lat, lng) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+// Directions in Google Maps (no API key needed). It starts from the phone's current location and shows
+// the route, distance and travel time itself; `navigate` starts turn-by-turn navigation straight away.
+export function directionsUrl(lat, lng, { navigate = false } = {}) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}${navigate ? "&dir_action=navigate" : ""}`;
 }

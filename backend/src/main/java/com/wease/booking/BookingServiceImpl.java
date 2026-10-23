@@ -4,6 +4,7 @@ import com.wease.core.exception.AccessDeniedException;
 import com.wease.core.exception.BadRequestException;
 import com.wease.core.exception.ResourceNotFoundException;
 import com.wease.core.util.Geo;
+import com.wease.notification.BookingRequestedEvent;
 import com.wease.user.User;
 import com.wease.user.Role;
 import com.wease.user.UserRepository;
@@ -11,6 +12,7 @@ import com.wease.worker.VisitingChargePolicy;
 import com.wease.worker.WorkerProfile;
 import com.wease.worker.WorkerProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final WorkerProfileRepository workerProfileRepository;
     private final BookingMapper bookingMapper;
     private final BillCalculator billCalculator;
+    private final ApplicationEventPublisher events;
 
     @Override
     @Transactional
@@ -110,6 +113,10 @@ public class BookingServiceImpl implements BookingService {
                 .build();
 
         bookingRepository.save(booking);
+        // Notifies the professional once this booking is committed.
+        events.publishEvent(new BookingRequestedEvent(booking.getId(), workerProfile.getUser().getId(),
+                customer.getFullName(), workerProfile.getProfession().label(),
+                booking.getBookingDate(), booking.getBookingTime()));
         return bookingMapper.toResponse(booking);
     }
 

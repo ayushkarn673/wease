@@ -72,6 +72,8 @@ public class SecurityConfig {
                     // Public marketplace browsing: anyone can view worker and firm listings and profiles
                     .requestMatchers(HttpMethod.GET, "/api/workers", "/api/workers/*", "/api/workers/*/reviews").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/firms", "/api/firms/*", "/api/firms/*/reviews").permitAll()
+                    // Browsers need the notification key before subscribing
+                    .requestMatchers(HttpMethod.GET, "/api/push/public-key").permitAll()
                     .anyRequest().authenticated())
             .exceptionHandling(ex -> ex
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

@@ -14,6 +14,7 @@ import { EmptyState, ErrorState, ListSkeleton, Skeleton } from "../../components
 import AvailabilityToggle from "../../components/worker/AvailabilityToggle";
 import RequestCard from "../../components/worker/RequestCard";
 import JobCard from "../../components/worker/JobCard";
+import NotificationsCard from "../../components/worker/NotificationsCard";
 import PricingSettings from "../../components/worker/PricingSettings";
 import ServiceAreaCard from "../../components/worker/ServiceAreaCard";
 import StatusBadge from "../../components/booking/StatusBadge";
@@ -106,6 +107,8 @@ export default function WorkerDashboard() {
 
       {status === "ready" && (
         <>
+          <NotificationsCard />
+
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <StatCard label="New requests" value={requests.length} icon={Clock} tone="amber" hint="Waiting for your reply" />
             <StatCard label="Upcoming jobs" value={upcoming.length} icon={CalendarCheck2} tone="blue" hint="Accepted and scheduled" />

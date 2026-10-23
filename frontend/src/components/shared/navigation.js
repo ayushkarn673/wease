@@ -28,4 +28,7 @@ export const NAV = {
   ],
 };
 
+// Where a professional answers booking requests; shows the count of waiting requests in the menus.
+export const REQUESTS_PATH = "/worker/dashboard";
+
 export const ROLE_LABEL = { CUSTOMER: "Customer", WORKER: "Professional", FIRM: "Labour firm", ADMIN: "Admin" };

@@ -119,7 +119,7 @@ export default function BookingDetails() {
           <div className="grid items-start gap-6 lg:grid-cols-[1fr_300px]">
             <div className="min-w-0 space-y-8">
               <BookingPricing booking={booking} role={user?.role} onBookingChanged={refresh} />
-              <BookingDetailsCard booking={booking} />
+              <BookingDetailsCard booking={booking} role={user?.role} />
             </div>
             <section className="space-y-3">
               <SectionHeader title="Progress" />

@@ -1,10 +1,17 @@
-import { CalendarDays, Clock, MapPin } from "lucide-react";
+import { CalendarDays, Clock, MapPin, Navigation } from "lucide-react";
 import { formatDate, formatTime, professionLabel } from "@/lib/format";
+import { directionsUrl } from "@/lib/geo";
 import UserAvatar from "../shared/UserAvatar";
 import PinMap from "../map/PinMap";
 import SectionHeader from "../shared/SectionHeader";
 
-export default function BookingDetailsCard({ booking }) {
+const ON_THE_WAY = ["ACCEPTED", "IN_PROGRESS"];
+
+export default function BookingDetailsCard({ booking, role }) {
+  const hasPin = booking.serviceLatitude != null && booking.serviceLongitude != null;
+  // Once a professional has accepted, they get one tap to Google Maps, which shows the route, distance and time.
+  const canNavigate = role === "WORKER" && hasPin && ON_THE_WAY.includes(booking.status);
+
   return (
     <div className="space-y-6">
       <section>
@@ -26,9 +33,25 @@ export default function BookingDetailsCard({ booking }) {
           <Item icon={Clock} label="Time" value={formatTime(booking.bookingTime)} />
           <Item icon={MapPin} label="Address" value={booking.serviceAddress} />
         </ul>
-        {booking.serviceLatitude != null && (
+        {canNavigate && (
+          <a
+            href={directionsUrl(booking.serviceLatitude, booking.serviceLongitude, { navigate: true })}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 flex items-center gap-3 rounded-2xl bg-brand-700 p-4 text-white transition hover:bg-brand-800"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
+              <Navigation className="size-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block font-semibold">Navigate in Google Maps</span>
+              <span className="block text-sm text-white/75">Route, distance and travel time from where you are</span>
+            </span>
+          </a>
+        )}
+        {hasPin && (
           <div className="mt-3">
-            <PinMap lat={booking.serviceLatitude} lng={booking.serviceLongitude} />
+            <PinMap lat={booking.serviceLatitude} lng={booking.serviceLongitude} showDirections={!canNavigate} />
           </div>
         )}
       </section>
