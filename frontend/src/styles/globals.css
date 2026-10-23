@@ -8,4 +8,10 @@
   html {
     @apply font-sans scroll-smooth;
   }
+  /* No bounce or stretch when a phone scrolls past the top or bottom, so the top bar and the
+     bottom tab bar stay still. */
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
 }
