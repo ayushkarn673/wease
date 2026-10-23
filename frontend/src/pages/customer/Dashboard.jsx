@@ -11,7 +11,6 @@ import { describePlace } from "../../services/geocode";
 import { ACTIVE_STATUSES, firstName } from "@/lib/format";
 import { SERVICE_RADIUS_KM, isInIndia } from "@/lib/geo";
 import { MARKETING_PHOTOS, unsplashUrl } from "@/lib/media";
-import { ACCOUNT_TYPES } from "@/lib/accountTypes";
 import WorkerCard from "../../components/customer/WorkerCard";
 import BookingCard from "../../components/booking/BookingCard";
 import HeroPanel from "../../components/shared/HeroPanel";
@@ -234,34 +233,6 @@ export default function CustomerDashboard() {
         </span>
         <ChevronRight className="size-5 shrink-0 text-white/60 transition group-hover:translate-x-0.5" />
       </Link>
-
-      {/* Ways to earn with Wease, for visitors who aren't signed in */}
-      {!user && (
-        <section>
-          <SectionHeader title="Work with Wease" subtitle="Get jobs from customers near you" />
-          <div className="grid gap-3 sm:grid-cols-2">
-            {["worker", "firm"].map((key) => {
-              const { icon: Icon, title, choiceText } = ACCOUNT_TYPES[key];
-              return (
-                <Link
-                  key={key}
-                  to={`/register?role=${key}`}
-                  className="group flex items-center gap-4 rounded-2xl border border-neutral-200/80 bg-white p-5 transition hover:border-brand-500 hover:shadow-sm"
-                >
-                  <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-700 group-hover:text-white">
-                    <Icon className="size-6" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold text-neutral-900">{title}</span>
-                    <span className="mt-0.5 block text-sm leading-snug text-neutral-500">{choiceText}</span>
-                  </span>
-                  <ChevronRight className="size-5 shrink-0 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-brand-700" />
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       {/* Upcoming bookings */}
       {isCustomer && (

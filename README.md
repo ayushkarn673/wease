@@ -16,7 +16,7 @@ Built with **Spring Boot** (Java 21) and **React** (Vite + Tailwind CSS), backed
 ### Sign-up and login
 - **Sign up** with Google, a phone number + one-time code, or email + password.
 - **Log in** the same ways: Google, a phone code, or email + password.
-- Choose your account type at sign-up: customer, professional or labour firm.
+- Customers sign up at `/register`. Professionals and labour firms sign up at `/join`, a link shared with them directly (customer pages don't show it).
 
 ### For customers
 - **Browse without an account** — sign in only when you book.

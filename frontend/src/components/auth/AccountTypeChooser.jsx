@@ -1,11 +1,11 @@
 import { ChevronRight } from "lucide-react";
-import { ACCOUNT_TYPES, ACCOUNT_TYPE_KEYS } from "@/lib/accountTypes";
+import { ACCOUNT_TYPES } from "@/lib/accountTypes";
 
-// First step of sign-up: one large card per way of using Wease.
-export default function AccountTypeChooser({ onChoose }) {
+// One large card per account type in `types` (keys of ACCOUNT_TYPES).
+export default function AccountTypeChooser({ types, onChoose }) {
   return (
     <div className="space-y-3">
-      {ACCOUNT_TYPE_KEYS.map((key) => {
+      {types.map((key) => {
         const { icon: Icon, choice, choiceText } = ACCOUNT_TYPES[key];
         return (
           <button

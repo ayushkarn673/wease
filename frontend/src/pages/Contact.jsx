@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { CalendarCheck2, ChevronRight, Mail, UserCog } from "lucide-react";
 import PublicLayout from "../layouts/PublicLayout";
 import PublicHeader from "../components/shared/PublicHeader";
@@ -50,10 +49,6 @@ export default function Contact() {
           </div>
         </div>
 
-        <p className="text-sm text-neutral-500">
-          Looking to offer your services?{" "}
-          <Link to="/register?role=worker" className="font-semibold text-brand-600 hover:text-brand-700">Create a professional account</Link>.
-        </p>
       </section>
     </PublicLayout>
   );

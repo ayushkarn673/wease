@@ -65,7 +65,7 @@ export default function Firms() {
           <EmptyState
             icon={city ? MapPin : Building2}
             title={city ? `No labour firms in ${city} yet` : "No labour firms yet"}
-            description="Firms are joining city by city. Run a labour firm? Sign up and list your team."
+            description="Firms are joining city by city. Check back soon, or book an individual professional."
             action={
               city && (
                 <button type="button" onClick={() => setCity(null)} className="rounded-full bg-brand-700 px-5 py-2 text-sm font-semibold text-white hover:bg-brand-800">

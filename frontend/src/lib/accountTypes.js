@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 // The three ways to use Wease, keyed by the `role` query parameter of /register.
-// Used by the sign-up chooser, the sign-up and login pages, and the home page.
+// Customers see only the customer sign-up; /join offers the professional and firm sign-ups.
 export const ACCOUNT_TYPES = {
   customer: {
     role: "CUSTOMER",
@@ -73,4 +73,5 @@ export const ACCOUNT_TYPES = {
   },
 };
 
-export const ACCOUNT_TYPE_KEYS = Object.keys(ACCOUNT_TYPES);
+// Professionals and labour firms sign up from /join, which customer pages don't link to.
+export const PARTNER_TYPES = ["worker", "firm"];

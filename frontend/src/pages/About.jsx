@@ -24,12 +24,6 @@ export default function About() {
             <Link to="/workers" className="inline-flex h-11 items-center rounded-full bg-brand-600 px-5 text-sm font-semibold text-white hover:bg-brand-700">
               Find a professional
             </Link>
-            <Link
-              to="/register?role=worker"
-              className="inline-flex h-11 items-center rounded-full bg-brand-50 px-5 text-sm font-semibold text-brand-700 hover:bg-brand-100"
-            >
-              Join as a professional
-            </Link>
           </div>
         </div>
       </section>

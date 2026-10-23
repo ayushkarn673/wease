@@ -1,9 +1,10 @@
 import BrandLogo from "../components/shared/BrandLogo";
 import { ACCOUNT_TYPES } from "@/lib/accountTypes";
 
-// `accountType` (customer, worker or firm) picks what the side panel says to that person.
-export default function AuthLayout({ children, accountType = "customer" }) {
-  const { heading, text, points } = (ACCOUNT_TYPES[accountType] ?? ACCOUNT_TYPES.customer).panel;
+// `accountType` (customer, worker or firm) picks what the side panel says to that person;
+// `panel` ({ heading, text, points }) replaces it entirely.
+export default function AuthLayout({ children, accountType = "customer", panel }) {
+  const { heading, text, points } = panel ?? (ACCOUNT_TYPES[accountType] ?? ACCOUNT_TYPES.customer).panel;
   return (
     <div className="grid min-h-screen bg-white lg:grid-cols-[1fr_1.1fr]">
       <aside className="hidden bg-brand-600 p-12 text-white lg:flex lg:flex-col lg:justify-between">

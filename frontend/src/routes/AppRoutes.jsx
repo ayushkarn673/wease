@@ -7,6 +7,7 @@ import Contact from "../pages/Contact";
 import NotFound from "../pages/NotFound";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
+import Join from "../pages/auth/Join";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import VerifyEmail from "../pages/auth/VerifyEmail";
@@ -96,6 +97,8 @@ export default function AppRoutes() {
       {/* Auth */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      {/* Sign-up for professionals and labour firms; shared with them directly, not linked from customer pages. */}
+      <Route path="/join" element={<Join />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       {/* Opened from links in emails; they work whether or not the visitor is signed in. */}
       <Route path="/reset-password" element={<ResetPassword />} />

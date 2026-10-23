@@ -3,38 +3,23 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { AlertCircle, ArrowLeft, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { pathAfterAuth } from "@/lib/format";
-import { ACCOUNT_TYPES } from "@/lib/accountTypes";
+import { ACCOUNT_TYPES, PARTNER_TYPES } from "@/lib/accountTypes";
 import AuthLayout from "../../layouts/AuthLayout";
-import AccountTypeChooser from "../../components/auth/AccountTypeChooser";
 import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
 import PhoneOtpForm from "../../components/auth/PhoneOtpForm";
 import EmailSignupForm from "../../components/auth/EmailSignupForm";
 
-// Step 1: choose how you'll use Wease (customer, professional or labour firm).
-// Step 2: create the login with Google, a phone code, or email + password.
-// The choice lives in ?role=, so links like /register?role=worker open step 2 directly and Back works.
+// Customers sign up here with Google, a phone code, or email + password.
+// /register?role=worker or ?role=firm (opened from /join) signs up a professional or a labour firm instead.
 export default function Register() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const accountKey = searchParams.get("role");
-  const account = ACCOUNT_TYPES[accountKey];
+  const [searchParams] = useSearchParams();
+  const requested = searchParams.get("role");
+  const accountKey = PARTNER_TYPES.includes(requested) ? requested : "customer";
   const location = useLocation();
 
-  const choose = (key) => setSearchParams({ role: key }, { state: location.state });
-  const changeType = () => setSearchParams({}, { state: location.state });
-
   return (
-    <AuthLayout accountType={account ? accountKey : "customer"}>
-      {account ? (
-        <SignupStep key={accountKey} accountKey={accountKey} account={account} onChangeType={changeType} />
-      ) : (
-        <>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">Join Wease</h1>
-          <p className="mt-2 text-sm text-neutral-500">How do you want to use Wease?</p>
-          <div className="mt-8">
-            <AccountTypeChooser onChoose={choose} />
-          </div>
-        </>
-      )}
+    <AuthLayout accountType={accountKey}>
+      <SignupStep key={accountKey} accountKey={accountKey} account={ACCOUNT_TYPES[accountKey]} />
 
       <p className="mt-8 text-center text-sm text-neutral-500">
         Already have an account?{" "}
@@ -46,7 +31,7 @@ export default function Register() {
   );
 }
 
-function SignupStep({ accountKey, account, onChangeType }) {
+function SignupStep({ accountKey, account }) {
   const [error, setError] = useState("");
   const [useEmail, setUseEmail] = useState(false);
   const navigate = useNavigate();
@@ -61,22 +46,20 @@ function SignupStep({ accountKey, account, onChangeType }) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={onChangeType}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-800"
-        >
-          <ArrowLeft className="size-4" />
-          Change account type
-        </button>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-800">
-          <Icon className="size-3.5" />
-          {short}
-        </span>
-      </div>
+      {next && (
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <Link to="/join" className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-500 hover:text-neutral-800">
+            <ArrowLeft className="size-4" />
+            Change
+          </Link>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-800">
+            <Icon className="size-3.5" />
+            {short}
+          </span>
+        </div>
+      )}
 
-      <h1 className="mt-6 text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">{title}</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl">{title}</h1>
       <p className="mt-2 text-sm text-neutral-500">{subtitle}</p>
 
       {next && (

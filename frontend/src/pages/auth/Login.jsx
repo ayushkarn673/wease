@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AlertCircle, ChevronRight, Loader2, Mail } from "lucide-react";
+import { AlertCircle, Loader2, Mail } from "lucide-react";
 import { login as authLogin } from "../../services/authService";
 import { useAuth } from "../../context/AuthContext";
 import { getErrorMessage, pathAfterAuth } from "@/lib/format";
-import { ACCOUNT_TYPES, ACCOUNT_TYPE_KEYS } from "@/lib/accountTypes";
 import AuthLayout from "../../layouts/AuthLayout";
 import AuthInput from "../../components/auth/AuthInput";
 import PasswordInput from "../../components/auth/PasswordInput";
@@ -55,26 +54,12 @@ export default function Login() {
         </button>
       </div>
 
-      <div className="mt-10 border-t border-neutral-100 pt-6">
-        <p className="text-center text-sm font-semibold text-neutral-900">New to Wease? Join as a…</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          {ACCOUNT_TYPE_KEYS.map((key) => {
-            const { icon: Icon, short } = ACCOUNT_TYPES[key];
-            return (
-              <Link
-                key={key}
-                to={`/register?role=${key}`}
-                state={location.state}
-                className="group flex items-center gap-2.5 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm font-semibold text-neutral-800 transition hover:border-brand-500 hover:bg-brand-50/60 sm:flex-col sm:gap-1.5 sm:py-3 sm:text-center"
-              >
-                <Icon className="size-5 shrink-0 text-brand-700" />
-                <span className="flex-1">{short}</span>
-                <ChevronRight className="size-4 text-neutral-300 group-hover:text-brand-700 sm:hidden" />
-              </Link>
-            );
-          })}
-        </div>
-      </div>
+      <p className="mt-8 text-center text-sm text-neutral-500">
+        New to Wease?{" "}
+        <Link to="/register" state={location.state} className="font-semibold text-brand-600 hover:text-brand-700">
+          Create an account
+        </Link>
+      </p>
     </AuthLayout>
   );
 }
