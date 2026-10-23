@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { getUserProfile, updateUserProfile } from "../../services/userService";
 import { useAuth } from "../../context/AuthContext";
 import { useAsync } from "../../hooks/useAsync";
-import { getErrorMessage } from "@/lib/format";
+import { displayEmail, getErrorMessage } from "@/lib/format";
 import { inputClassName } from "@/lib/styles";
 import PageHeader from "../../components/shared/PageHeader";
 import UserAvatar from "../../components/shared/UserAvatar";
@@ -28,7 +28,7 @@ function ProfileForm({ initial }) {
   const { login } = useAuth();
   const [form, setForm] = useState({
     fullName: initial.fullName || "",
-    email: initial.email || "",
+    email: displayEmail(initial.email) ?? "Not added — you log in with your phone",
     phone: initial.phone || "",
   });
   const [errors, setErrors] = useState({});

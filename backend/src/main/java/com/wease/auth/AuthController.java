@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     private final AuthService authService;
@@ -29,6 +28,21 @@ public class AuthController {
             @Valid @RequestBody LoginRequest request) {
 
         return authService.login(request);
+    }
+
+    @PostMapping("/otp/send")
+    public OtpSentResponse sendOtp(@Valid @RequestBody SendOtpRequest request) {
+        return authService.sendOtp(request);
+    }
+
+    @PostMapping("/otp/verify")
+    public AuthResponse verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        return authService.verifyOtp(request);
+    }
+
+    @PostMapping("/google")
+    public AuthResponse google(@Valid @RequestBody GoogleAuthRequest request) {
+        return authService.google(request);
     }
 
     @PostMapping("/forgot-password")

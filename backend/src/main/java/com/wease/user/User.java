@@ -37,6 +37,9 @@ public class User extends BaseEntity implements UserDetails {
     @Column(length = 15)
     private String phone;
 
+    // True once the phone number was confirmed with a one-time code; only verified numbers can log in.
+    private Boolean phoneVerified;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

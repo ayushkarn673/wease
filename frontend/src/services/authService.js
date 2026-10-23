@@ -24,3 +24,22 @@ export const verifyEmail = async (token) => {
     const response = await api.post("/auth/verify-email", { token });
     return response.data;
 };
+
+// Phone login: sends a 6-digit code by SMS. Returns { message, phone (masked), expiresInSeconds, resendInSeconds }.
+export const sendOtp = async (phone) => {
+  const response = await api.post("/auth/otp/send", { phone });
+  return response.data;
+};
+
+// Logs in, or creates the account when fullName (and optionally role) is given for a new number.
+// A new number without a name fails with 404 and error "NEW_ACCOUNT".
+export const verifyOtp = async ({ phone, code, fullName, role }) => {
+  const response = await api.post("/auth/otp/verify", { phone, code, fullName, role });
+  return response.data;
+};
+
+// credential: the ID token from Google Sign-In.
+export const googleLogin = async ({ credential, role }) => {
+  const response = await api.post("/auth/google", { credential, role });
+  return response.data;
+};

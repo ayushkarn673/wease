@@ -203,3 +203,16 @@ export function coverageLabel(firm) {
   const cities = firm?.coveredCities?.length ? firm.coveredCities : [firm?.city].filter(Boolean);
   return firm?.coverage === "SELECTED_CITIES" ? cities.join(", ") : `All of ${cities[0] ?? "their city"}`;
 }
+
+// Phone-only accounts have an internal placeholder email; never show it.
+export function displayEmail(email) {
+  return email && !email.endsWith(".invalid") ? email : null;
+}
+
+// Where to go after Google/phone/password sign-in: new professionals and firms finish their profile first.
+export function pathAfterAuth(response, from) {
+  if (response.newAccount && response.role === "WORKER") return "/complete-worker-profile";
+  if (response.newAccount && response.role === "FIRM") return "/complete-firm-profile";
+  if (response.role === "CUSTOMER" && from) return from;
+  return homePathFor(response.role);
+}

@@ -26,6 +26,7 @@ export function AuthProvider({ children }) {
       role: data.role,
       emailVerified: data.emailVerified,
       city: data.city ?? null,
+      phone: data.phone ?? null,
     };
 
     localStorage.setItem("token", data.token);

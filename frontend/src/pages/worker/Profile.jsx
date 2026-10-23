@@ -6,7 +6,7 @@ import { ExternalLink, Loader2 } from "lucide-react";
 import { getUserProfile, updateUserProfile } from "../../services/userService";
 import { getWorkerProfile, updateWorkerProfile } from "../../services/workerService";
 import { useAuth } from "../../context/AuthContext";
-import { PROFESSIONS, getErrorMessage, professionLabel } from "@/lib/format";
+import { displayEmail, PROFESSIONS, getErrorMessage, professionLabel } from "@/lib/format";
 import { inputClassName, textareaClassName } from "@/lib/styles";
 import PageHeader from "../../components/shared/PageHeader";
 import UserAvatar from "../../components/shared/UserAvatar";
@@ -71,7 +71,7 @@ function WorkerProfileForm({ user, worker }) {
   const { login } = useAuth();
   const [form, setForm] = useState({
     fullName: user.fullName || "",
-    email: user.email || "",
+    email: displayEmail(user.email) ?? "Not added — you log in with your phone",
     phone: user.phone || "",
     profession: worker.profession || "",
     experience: worker.experience ?? "",

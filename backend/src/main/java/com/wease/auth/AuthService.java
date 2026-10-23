@@ -13,4 +13,10 @@ public interface AuthService {
     void verifyEmail(VerifyEmailRequest request);
 
     void resendVerification(String email);
+
+    OtpSentResponse sendOtp(SendOtpRequest request);
+
+    AuthResponse verifyOtp(VerifyOtpRequest request);
+
+    AuthResponse google(GoogleAuthRequest request);
 }

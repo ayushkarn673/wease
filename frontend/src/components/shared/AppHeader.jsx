@@ -2,7 +2,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../../context/AuthContext";
-import { homePathFor } from "@/lib/format";
+import { displayEmail, homePathFor } from "@/lib/format";
 import BrandLogo from "./BrandLogo";
 import CitySelector from "./CitySelector";
 import UserAvatar from "./UserAvatar";
@@ -92,7 +92,7 @@ export default function AppHeader() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
                   <p className="truncate text-sm font-medium text-neutral-900">{user.fullName}</p>
-                  <p className="truncate text-xs text-neutral-500">{user.email}</p>
+                  <p className="truncate text-xs text-neutral-500">{displayEmail(user.email) ?? user.phone ?? ""}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {profilePath && (

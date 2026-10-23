@@ -76,6 +76,23 @@ Back in Render → `wease-api` → **Environment**:
 
 Save — Render redeploys. Then open your Vercel site, register, and try the app.
 
+## 5. Google Sign-In and phone codes
+
+**Google Sign-In** (free):
+1. Go to console.cloud.google.com → create a project → **APIs & Services → OAuth consent screen**
+   (External, app name "Wease", your email).
+2. **Credentials → Create credentials → OAuth client ID → Web application.**
+   Under **Authorized JavaScript origins** add `http://localhost:5173` and your Vercel address
+   (e.g. `https://wease.vercel.app`).
+3. Copy the **Client ID** and set it in two places:
+   - Render → `GOOGLE_CLIENT_ID`
+   - Vercel → `VITE_GOOGLE_CLIENT_ID` (then redeploy the site)
+
+**Phone codes (OTP):** until an SMS provider is connected, codes are written to the Render log
+(`SMS_PROVIDER=log`), which is fine for testing but **not for real users**. Before launch, sign up with an
+Indian SMS provider such as MSG91 or Twilio, complete DLT registration (sender ID + OTP template), and add
+its sender in `backend/src/main/java/com/wease/core/sms/` next to `LogSmsSender`.
+
 ## After deploying
 
 - **Email:** without SMTP settings, verification and reset emails are only written to the Render log.

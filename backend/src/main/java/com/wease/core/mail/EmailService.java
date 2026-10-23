@@ -24,6 +24,10 @@ public class EmailService {
     }
 
     public void send(String to, String subject, String body) {
+        // Phone-only accounts have a placeholder address that can't receive mail.
+        if (to == null || to.endsWith(".invalid")) {
+            return;
+        }
         JavaMailSender sender = mailSender.getIfAvailable();
         if (sender == null) {
             log.warn("SMTP is not configured; email NOT sent. To: {} | Subject: {}\n{}", to, subject, body);

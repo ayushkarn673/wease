@@ -13,6 +13,11 @@ Built with **Spring Boot** (Java 21) and **React** (Vite + Tailwind CSS), backed
 
 ## Features
 
+### Sign-up and login
+- **Sign up with Google or a phone number + one-time code** — every new account is verified.
+- **Log in** with Google, a phone code, or email + password (for accounts that have one).
+- Choose your account type at sign-up: customer, professional or labour firm.
+
 ### For customers
 - **Browse without an account** — sign in only when you book.
 - **Find professionals near you** — set your location (GPS, address search or a map pin) and see
@@ -101,9 +106,12 @@ Backend settings come from `backend/.env` (git-ignored) or environment variables
 | `CORS_ALLOWED_ORIGINS` | Sites allowed to call the API (comma-separated) | `http://localhost:5173` |
 | `FRONTEND_URL` | Base URL used in email links | `http://localhost:5173` |
 | `PLATFORM_COMMISSION_PERCENT` | Commission on labour for completed jobs | `5` |
+| `GOOGLE_CLIENT_ID` | Google Sign-In OAuth client ID | empty (Google sign-in off) |
+| `SMS_PROVIDER` | How phone codes are sent | `log` (codes in the server log — development only) |
+| `PASSWORD_SIGNUP_ENABLED` | Allow email + password sign-up (local tests only) | `false` |
 | `spring.mail.*`, `MAIL_FROM` | SMTP for real emails | emails go to the log |
 
-Frontend: set `VITE_API_URL` (see `frontend/.env.example`) — defaults to `http://localhost:8080/api`.
+Frontend: set `VITE_API_URL` (defaults to `http://localhost:8080/api`) and `VITE_GOOGLE_CLIENT_ID` — see `frontend/.env.example`.
 
 ---
 
@@ -138,7 +146,7 @@ All endpoints are under `/api`. Browsing is public; everything else needs a logi
 
 | Area | Endpoints |
 |---|---|
-| Auth | `POST /auth/register`, `/auth/login`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/verify-email` |
+| Auth | `POST /auth/otp/send`, `/auth/otp/verify`, `/auth/google`, `/auth/login`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/verify-email` |
 | Professionals | `GET /workers` (filter by `profession`, `q`, `city`, or `lat`+`lng` for the 10 km search), `GET /workers/{id}`, `GET /workers/{id}/reviews` |
 | Worker account | `GET/POST/PUT /workers/profile`, `PUT /workers/pricing`, `PUT /workers/location`, `PUT /workers/availability` |
 | Bookings | `POST /bookings`, `GET /bookings/{id}`, `/bookings/customer`, `/bookings/worker`, `PUT /bookings/{id}/accept · reject · complete · cancel` |
@@ -159,7 +167,7 @@ such as **Aiven**, all on free plans. See **[DEPLOY.md](DEPLOY.md)** for the ste
 ## Roadmap
 
 - Online payments (UPI / cards) via a payment gateway
-- Phone number + OTP login and SMS / WhatsApp notifications
+- Connect an SMS provider (MSG91 / Twilio, DLT-registered) for phone codes; SMS / WhatsApp notifications
 - Admin panel: worker verification, disputes, review moderation
 - Worker photos and portfolios
 - Installable mobile app (PWA)
