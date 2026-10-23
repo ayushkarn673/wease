@@ -6,6 +6,7 @@
     <!-- App manifest: lets phones add Wease to the home screen (needed for notifications on iPhone) -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/loader/loader.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#2563eb" />
     <meta
@@ -21,6 +22,58 @@
     <title>Wease — Book trusted local professionals</title>
   </head>
   <body>
+    <!-- Loading screen: first in <body> so it shows before the app has downloaded; it fades out once the
+         page has loaded (public/loader/loader.js). Add ?hold to the address to keep it on screen. -->
+    <div id="wease-loader" class="wease-loader" role="status" aria-live="polite" aria-busy="true">
+      <div class="wl-stage">
+        <svg class="wl-logo" viewBox="0 0 500 500" aria-hidden="true">
+          <defs>
+            <!-- one cube; (0,0) is the top-left corner of its front face -->
+            <g id="wl-cube" class="wl-cube">
+              <path class="wl-top" d="M0 0 L48 0 L71 -17 L23 -17 Z" />
+              <path class="wl-side" d="M48 0 L71 -17 L71 31 L48 48 Z" />
+              <path class="wl-front" d="M0 0 H48 V48 H0 Z" />
+            </g>
+          </defs>
+
+          <!-- the W, drawn bottom row first so upper cubes cover the tops below them -->
+          <use href="#wl-cube" x="118" y="392" />
+          <use href="#wl-cube" x="310" y="392" />
+          <use href="#wl-cube" x="118" y="344" />
+          <use href="#wl-cube" x="166" y="344" />
+          <use href="#wl-cube" x="262" y="344" />
+          <use href="#wl-cube" x="310" y="344" />
+          <use href="#wl-cube" x="118" y="296" />
+          <use href="#wl-cube" x="214" y="296" />
+          <use href="#wl-cube" x="310" y="296" />
+          <use href="#wl-cube" x="118" y="248" />
+          <use href="#wl-cube" x="310" y="248" />
+          <use href="#wl-cube" x="118" y="200" />
+
+          <!-- empty slot the crane fills -->
+          <path class="wl-slot" d="M310 200 H358 V248 H310 Z M310 200 L333 183 H381 L358 200 M381 183 V231" />
+
+          <!-- block once it has been set down -->
+          <use class="wl-placed" href="#wl-cube" x="310" y="200" />
+
+          <!-- crane hook: cable, ring, slings and the block it carries -->
+          <g class="wl-hook">
+            <path class="wl-rope" d="M346 -420 V51.5" />
+            <circle class="wl-rope" cx="346" cy="57" r="5.5" />
+            <g class="wl-load">
+              <path class="wl-rope" d="M346 62.5 L323 98.5 M346 62.5 L369 99.5" />
+              <use href="#wl-cube" x="310" y="108" />
+            </g>
+          </g>
+        </svg>
+        <p class="wl-label">Loading<span class="wl-dots"><i></i><i></i><i></i></span></p>
+      </div>
+    </div>
+    <script>
+      if (/[?&]hold\b/.test(location.search)) document.getElementById("wease-loader").setAttribute("data-manual", "");
+    </script>
+    <script src="/loader/loader.js"></script>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

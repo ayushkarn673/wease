@@ -1,0 +1,154 @@
+/* wease loader — the crane lowers the last block onto the W, lets go, goes back up, repeats.
+   Shown on first load until the app is ready (see index.html). Wease is light-only, so no dark colours. */
+
+:root {
+  --wl-bg: #f3f6f4;
+  --wl-ink: #17302a;
+  --wl-muted: #6f857d;
+  --wl-edge: #1e5d51;
+  --wl-cube-top: #ffffff;
+  --wl-cube-front: #eef1ef;
+  --wl-cube-side: #8db4a6;
+  --wl-cycle: 4s; /* one full lower → release → return trip */
+}
+
+.wease-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--wl-bg);
+  color: var(--wl-ink);
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.wease-loader.is-done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.wl-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.wl-logo {
+  display: block;
+  width: min(200px, 50vw);
+  height: auto;
+}
+
+/* ---------- logo parts ---------- */
+
+.wl-cube path {
+  stroke: var(--wl-edge);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.wl-top { fill: var(--wl-cube-top); }
+.wl-side { fill: var(--wl-cube-side); }
+.wl-front { fill: var(--wl-cube-front); }
+
+.wl-slot {
+  fill: none;
+  stroke: var(--wl-cube-side);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+}
+
+.wl-rope {
+  fill: none;
+  stroke: var(--wl-ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+/* ---------- motion ---------- */
+
+.wl-hook,
+.wl-load,
+.wl-placed {
+  animation-duration: var(--wl-cycle);
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+.wl-hook { animation-name: wl-hook; }
+.wl-load { animation-name: wl-load; }
+
+.wl-placed {
+  opacity: 0;
+  animation-name: wl-placed;
+}
+
+/*
+  Timeline (% of --wl-cycle)
+   0–14  hold the block up, like the logo
+  14–38  lower it into the slot
+  39     let go — block is now part of the W
+  46–66  empty hook goes back up and out of the tile
+  66–74  placed block fades back to the dashed slot
+  76–100 hook comes back down carrying the block
+*/
+
+@keyframes wl-hook {
+  0%, 14% { transform: translateY(0); }
+  38%, 46% { transform: translateY(92px); animation-timing-function: ease-in; }
+  66%, 76% { transform: translateY(-260px); animation-timing-function: ease-out; }
+  100% { transform: translateY(0); }
+}
+
+@keyframes wl-load {
+  0%, 38.9% { opacity: 1; }
+  39%, 73.9% { opacity: 0; }
+  74%, 100% { opacity: 1; }
+}
+
+@keyframes wl-placed {
+  0%, 38.9% { opacity: 0; }
+  39%, 66% { opacity: 1; }
+  74%, 100% { opacity: 0; }
+}
+
+/* ---------- label ---------- */
+
+.wl-label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--wl-muted);
+  font: 600 12px/1 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.wl-dots { display: inline-flex; gap: 4px; }
+
+.wl-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: var(--wl-cube-side);
+  animation: wl-dot 1.2s ease-in-out infinite;
+}
+
+.wl-dots i:nth-child(2) { animation-delay: 0.15s; }
+.wl-dots i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes wl-dot {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ---------- reduced motion: just show the logo as drawn ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .wease-loader * { animation: none !important; }
+}
