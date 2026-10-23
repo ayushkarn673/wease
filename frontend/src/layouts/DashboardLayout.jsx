@@ -25,7 +25,7 @@ export default function DashboardLayout() {
     <RequestAlertsProvider>
       <div className="fixed inset-0 flex flex-col bg-surface">
         <AppHeader />
-        <main ref={content} className="min-h-0 flex-1 overflow-y-auto overscroll-y-none">
+        <main ref={content} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-none">
           <div className="mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-6 md:pb-12 md:pt-8">
             <Outlet />
           </div>

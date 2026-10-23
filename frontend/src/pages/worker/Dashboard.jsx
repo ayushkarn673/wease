@@ -116,12 +116,12 @@ export default function WorkerDashboard() {
             <StatCard label="Total earnings" value={formatCurrency(earnings)} icon={IndianRupee} tone="violet" hint="After Wease commission" />
           </div>
 
-          <div className="grid items-start gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
             <PricingSettings profile={data.profile} onSaved={setProfile} />
             <ServiceAreaCard profile={data.profile} onSaved={setProfile} />
           </div>
 
-          <div className="grid items-start gap-8 lg:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
             <section>
               <SectionHeader title="New requests" count={requests.length} />
               {requests.length === 0 ? (

@@ -79,7 +79,7 @@ export default function BookingDetails() {
       )}
 
       {status === "loading" && (
-        <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <Skeleton className="h-96" />
           <Skeleton className="h-64" />
         </div>
@@ -116,7 +116,7 @@ export default function BookingDetails() {
             </h1>
           </HeroPanel>
 
-          <div className="grid items-start gap-6 lg:grid-cols-[1fr_300px]">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
             <div className="min-w-0 space-y-8">
               <BookingPricing booking={booking} role={user?.role} onBookingChanged={refresh} />
               <BookingDetailsCard booking={booking} role={user?.role} />

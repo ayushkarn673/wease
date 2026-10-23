@@ -108,7 +108,7 @@ export default function WorkerDetails() {
         </div>
       </HeroPanel>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-6">
           <section>
             <SectionHeader title="About" />

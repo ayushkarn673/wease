@@ -91,7 +91,7 @@ export default function FirmDashboard() {
             </ul>
           </section>
 
-          <div className="grid items-start gap-8 lg:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
             <section>
               <SectionHeader title="New requests" count={groups.pending.length} />
               {groups.pending.length === 0 ? (
@@ -113,7 +113,7 @@ export default function FirmDashboard() {
           {groups.completed.length > 0 && (
             <section>
               <SectionHeader title="Recently completed" />
-              <div className="grid gap-3 lg:grid-cols-2">{groups.completed.slice(0, 6).map((r) => <CrewCard key={r.id} crew={r} viewer="firm" />)}</div>
+              <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{groups.completed.slice(0, 6).map((r) => <CrewCard key={r.id} crew={r} viewer="firm" />)}</div>
             </section>
           )}
         </>

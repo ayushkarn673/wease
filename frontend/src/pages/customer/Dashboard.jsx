@@ -200,7 +200,7 @@ export default function CustomerDashboard() {
           />
         )}
         {location && nearbyStatus === "ready" && nearby.length > 0 && (
-          <div className="grid items-start gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
             <WorkersMap workers={nearby} location={location} className="h-80 lg:h-[26rem]" />
             <div className="border-t border-neutral-200/80">
               {nearby.slice(0, 4).map((w) => (
@@ -244,7 +244,7 @@ export default function CustomerDashboard() {
             <EmptyState icon={CalendarClock} title="No upcoming bookings" description="When you book a professional, it shows up here." />
           )}
           {bookingsStatus === "ready" && bookings.length > 0 && (
-            <div className="grid gap-3 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {bookings.map((b) => (
                 <BookingCard key={b.bookingId} booking={b} />
               ))}
