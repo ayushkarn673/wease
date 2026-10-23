@@ -1,5 +1,7 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { useAsync } from "../../hooks/useAsync";
+import { usePolling } from "../../hooks/usePolling";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, FileSearch } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -16,6 +18,28 @@ import SectionHeader from "../../components/shared/SectionHeader";
 import { EmptyState, ErrorState, Skeleton } from "../../components/shared/States";
 import { firstName, homePathFor, professionLabel } from "@/lib/format";
 
+// Bookings that can still change: the other side's updates are picked up every few seconds.
+const POLL_MS = 5000;
+const isLive = (b) => !["REJECTED", "CANCELLED"].includes(b.status) && !(b.status === "COMPLETED" && b.paymentStatus === "PAID");
+
+// Tells each side what the *other* person just did. A customer is only told about the professional's
+// actions and vice versa, so nobody gets a pop-up for their own click.
+function announceChange(prev, next, role) {
+  const quoteChanged = prev.quoteState !== next.quoteState;
+  const totalChanged = prev.bill?.total !== next.bill?.total;
+  if (role === "CUSTOMER") {
+    if (prev.status !== next.status && next.status === "ACCEPTED") toast.success(`${next.workerName} accepted your booking`);
+    else if (prev.status !== next.status && next.status === "REJECTED") toast.error(`${next.workerName} declined this booking`);
+    else if (prev.status !== next.status && next.status === "COMPLETED") toast.success("Job marked as completed", { description: "See the final bill below." });
+    else if (quoteChanged && next.quoteState === "AWAITING_APPROVAL") toast.info(`New quote from ${next.workerName}`, { description: "Review it below and approve or decline." });
+    else if (prev.paymentStatus !== next.paymentStatus && next.paymentStatus !== "UNPAID") toast.success("Payment recorded");
+  } else if (role === "WORKER") {
+    if (prev.status !== next.status && next.status === "CANCELLED") toast.error(`${next.customerName} cancelled this booking`);
+    else if (next.quoteState === "APPROVED" && (quoteChanged || totalChanged)) toast.success(`${next.customerName} approved your quote`, { description: "You can start the work." });
+    else if (quoteChanged && next.quoteState === "DECLINED") toast.error(`${next.customerName} declined your quote`);
+  }
+}
+
 export default function BookingDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -24,6 +48,19 @@ export default function BookingDetails() {
   const { status: loadStatus, data: booking, error, reload, refresh, setData } = useAsync(loader);
   const errorCode = error?.response?.status;
   const status = loadStatus === "error" && (errorCode === 404 || errorCode === 403) ? "notfound" : loadStatus;
+
+  // Keep the page in step with the other person (new quote, approval, payment) without reloading.
+  const shown = useRef(booking);
+  useEffect(() => {
+    shown.current = booking;
+  }, [booking]);
+  const poll = useCallback(async () => {
+    const next = await getBookingDetails(id);
+    const prev = shown.current;
+    setData(next);
+    if (prev && prev.bookingId === next.bookingId) announceChange(prev, next, user?.role);
+  }, [id, setData, user?.role]);
+  usePolling(poll, POLL_MS, status === "ready" && isLive(booking));
 
   const backPath = user?.role === "CUSTOMER" ? "/customer/bookings" : homePathFor(user?.role);
   const goBack = () => (window.history.length > 1 ? navigate(-1) : navigate(backPath));

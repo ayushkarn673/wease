@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BadgeIndianRupee, Building2, CalendarClock, ChevronRight, ClipboardCheck, ClipboardList, Crosshair, Loader2, MapPin, Search, Wallet } from "lucide-react";
 import { useAsync } from "../../hooks/useAsync";
+import { usePolling } from "../../hooks/usePolling";
 import { useAuth } from "../../context/AuthContext";
 import { useCity } from "../../context/city";
 import { getAvailableWorkers } from "../../services/workerService";
@@ -51,9 +52,10 @@ export default function CustomerDashboard() {
     [location]
   );
   const { status: nearbyStatus, data: nearby = [], reload: reloadNearby } = useAsync(loadNearby);
-  const { status: bookingsStatus, data: bookings = [], reload: reloadBookings } = useAsync(
+  const { status: bookingsStatus, data: bookings = [], reload: reloadBookings, refresh: refreshBookings } = useAsync(
     isCustomer ? loadUpcomingBookings : noResults
   );
+  usePolling(refreshBookings, 15000, isCustomer && bookingsStatus === "ready");
 
   function handleSearch(e) {
     e.preventDefault();

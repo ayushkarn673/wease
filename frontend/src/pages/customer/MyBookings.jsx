@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAsync } from "../../hooks/useAsync";
+import { usePolling } from "../../hooks/usePolling";
 import { Link } from "react-router-dom";
 import { CalendarClock, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,9 @@ const EMPTY_COPY = {
 
 export default function MyBookings() {
   const [tab, setTab] = useState("upcoming");
-  const { status, data, reload } = useAsync(getCustomerBookings);
+  const { status, data, reload, refresh } = useAsync(getCustomerBookings);
+  // Statuses (accepted, quote waiting, completed) update without reloading.
+  usePolling(refresh, 15000, status === "ready");
   const { status: crewStatus, data: crewData, reload: reloadCrews } = useAsync(getCustomerCrewRequests);
   const bookings = useMemo(() => data ?? [], [data]);
   const crews = useMemo(() => crewData ?? [], [crewData]);

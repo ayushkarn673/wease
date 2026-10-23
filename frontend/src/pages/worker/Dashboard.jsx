@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useAsync } from "../../hooks/useAsync";
+import { usePolling } from "../../hooks/usePolling";
 import { Link } from "react-router-dom";
 import { BriefcaseBusiness, CalendarCheck2, CheckCircle2, Clock, IndianRupee, Inbox, UserRoundPlus } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
@@ -31,6 +32,8 @@ export default function WorkerDashboard() {
   const { user } = useAuth();
   const { status: loadStatus, data, error, reload, refresh, setData } = useAsync(loadDashboard);
   const status = loadStatus === "error" && error?.response?.status === 404 ? "noprofile" : loadStatus;
+  // New requests and customers' quote approvals show up without reloading.
+  usePolling(refresh, 15000, status === "ready");
   const bookings = useMemo(() => data?.bookings ?? [], [data]);
   const available = Boolean(data?.profile?.available);
   const setProfile = useCallback((profile) => setData((d) => ({ ...d, profile })), [setData]);

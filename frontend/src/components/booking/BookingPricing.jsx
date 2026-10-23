@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Banknote, CheckCheck, ClipboardList, FilePlus2, Hourglass, Loader2 } from "lucide-react";
 import { useAsync } from "../../hooks/useAsync";
@@ -23,6 +23,16 @@ export default function BookingPricing({ booking, role, onBookingChanged }) {
   const { data: quotes = [], refresh: refreshQuotes } = useAsync(loadQuotes);
   const { data: payments = [], refresh: refreshPayments } = useAsync(loadPayments);
   const [composing, setComposing] = useState(false);
+
+  // When the booking changes (often because the other person acted), fetch its quotes and payments again.
+  const signature = JSON.stringify([booking.status, booking.quoteState, booking.paymentStatus, booking.bill]);
+  const seen = useRef(signature);
+  useEffect(() => {
+    if (seen.current === signature) return;
+    seen.current = signature;
+    refreshQuotes();
+    refreshPayments();
+  }, [signature, refreshQuotes, refreshPayments]);
 
   // Before itemised pricing existed, a booking only stored the final amount.
   if (booking.quoteState == null) {
