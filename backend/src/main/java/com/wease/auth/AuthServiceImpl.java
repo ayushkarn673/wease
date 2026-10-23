@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
 
     // New accounts must be verified with Google or a phone code. Email + password sign-up can be switched
     // back on (e.g. for automated tests) with PASSWORD_SIGNUP_ENABLED=true.
-    @Value("${app.auth.password-signup-enabled:false}")
+    @Value("${app.auth.password-signup-enabled:true}")
     private boolean passwordSignupEnabled;
 
     @Override
@@ -182,9 +182,12 @@ public class AuthServiceImpl implements AuthService {
         User existing = userRepository.findByEmail(profile.email()).orElse(null);
         if (existing != null) {
             requireEnabled(existing);
-            // Google has confirmed this address belongs to the person signing in.
+            // Google has confirmed this address belongs to the person signing in. A password set before the
+            // address was confirmed may belong to someone else who signed up with it, so it stops working
+            // (the owner can set a new one with "Forgot password").
             if (!Boolean.TRUE.equals(existing.getEmailVerified())) {
                 existing.setEmailVerified(true);
+                existing.setPassword(unusablePassword());
                 userRepository.save(existing);
             }
             return toAuthResponse(existing, false);

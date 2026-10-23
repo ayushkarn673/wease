@@ -7,8 +7,9 @@ import AuthLayout from "../../layouts/AuthLayout";
 import RoleSelector from "../../components/auth/RoleSelector";
 import GoogleSignInButton from "../../components/auth/GoogleSignInButton";
 import PhoneOtpForm from "../../components/auth/PhoneOtpForm";
+import EmailSignupForm from "../../components/auth/EmailSignupForm";
 
-// New accounts are created only with Google or a verified phone number.
+// Sign up with Google, a phone number + one-time code, or email + password.
 export default function Register() {
   const [searchParams] = useSearchParams();
   const [role, setRole] = useState(() => {
@@ -16,6 +17,7 @@ export default function Register() {
     return requested === "worker" || requested === "firm" ? requested : "customer";
   });
   const [error, setError] = useState("");
+  const [useEmail, setUseEmail] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -44,15 +46,29 @@ export default function Register() {
 
         <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-neutral-400">
           <span className="h-px flex-1 bg-neutral-200" />
-          or with your phone
+          {useEmail ? "or with email" : "or with your phone"}
           <span className="h-px flex-1 bg-neutral-200" />
         </div>
 
-        <PhoneOtpForm key={role} mode="signup" role={role.toUpperCase()} onAuthenticated={finish} />
+        {useEmail ? (
+          <EmailSignupForm role={role.toUpperCase()} onAuthenticated={finish} />
+        ) : (
+          <PhoneOtpForm key={role} mode="signup" role={role.toUpperCase()} onAuthenticated={finish} />
+        )}
+
+        <button
+          type="button"
+          onClick={() => setUseEmail((v) => !v)}
+          className="block w-full text-center text-sm font-semibold text-brand-700 hover:text-brand-800"
+        >
+          {useEmail ? "Sign up with your phone number instead" : "Sign up with email and password"}
+        </button>
 
         <p className="flex items-start gap-2 rounded-lg bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-500">
           <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand-600" />
-          Every new account is verified with Google or a one-time code sent to your phone.
+          {useEmail
+            ? "We'll email you a link to confirm your address. You can use Wease straight away."
+            : "We'll send a one-time code to your phone to confirm it's yours."}
         </p>
       </div>
 
