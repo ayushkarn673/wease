@@ -20,7 +20,7 @@ export default function SignInPrompt({ open, onOpenChange, title, description, r
 
         <div className="space-y-2 p-6">
           <Link
-            to="/register"
+            to="/register?role=customer"
             state={state}
             className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-700 text-sm font-semibold text-white transition hover:bg-brand-800"
           >

@@ -33,7 +33,8 @@ export default function Footer() {
             <ul className="mt-4 space-y-2.5 text-sm text-neutral-500">
               <li><Link to="/about" className="transition hover:text-neutral-900">About</Link></li>
               <li><Link to="/contact" className="transition hover:text-neutral-900">Contact</Link></li>
-              <li><Link to="/register" className="transition hover:text-neutral-900">Join as a professional</Link></li>
+              <li><Link to="/register?role=worker" className="transition hover:text-neutral-900">Join as a professional</Link></li>
+              <li><Link to="/register?role=firm" className="transition hover:text-neutral-900">Register a labour firm</Link></li>
             </ul>
           </div>
         </div>
