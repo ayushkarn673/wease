@@ -50,7 +50,8 @@ export default function RequestAlertsProvider({ children }) {
   // "(2) Wease — …" in the browser tab while requests are waiting.
   useEffect(() => {
     if (!isWorker || count === 0) return undefined;
-    const title = document.title;
+    // Strip any count already there (e.g. left by a page that re-rendered) so it never shows twice.
+    const title = document.title.replace(/^\(\d+\)\s*/, "");
     document.title = `(${count}) ${title}`;
     return () => {
       document.title = title;

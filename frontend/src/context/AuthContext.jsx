@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { disablePush } from "@/lib/push";
+import { THEME_KEY } from "@/lib/theme";
 
 const AuthContext = createContext();
 
@@ -50,7 +51,9 @@ export function AuthProvider({ children }) {
   const logout = () => {
     // This device stops getting the signed-out person's notifications (e.g. on a shared phone).
     disablePush(localStorage.getItem("token"));
+    const theme = localStorage.getItem(THEME_KEY);
     localStorage.clear();
+    if (theme) localStorage.setItem(THEME_KEY, theme);
     setUser(null);
     setToken(null);
   };

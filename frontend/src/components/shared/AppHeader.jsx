@@ -1,8 +1,9 @@
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "../../context/AuthContext";
 import { displayEmail, homePathFor } from "@/lib/format";
+import { setThemePref, useThemePref } from "@/lib/theme";
 import BrandLogo from "./BrandLogo";
 import CitySelector from "./CitySelector";
 import UserAvatar from "./UserAvatar";
@@ -13,17 +14,26 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 const PROFILE_PATH = { CUSTOMER: "/customer/profile", WORKER: "/worker/profile", FIRM: "/firm/profile" };
 
+const APPEARANCE = [
+  { value: "system", label: "Automatic", icon: Monitor },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+];
+
 // White app bar. Page links show here on desktop; phones use the BottomNav. Visitors who aren't signed in
 // see Log in / Sign up instead of the account menu.
 export default function AppHeader() {
   const { user, logout } = useAuth();
   const pending = usePendingRequests();
+  const theme = useThemePref();
   const navigate = useNavigate();
   const location = useLocation();
   const links = (user ? NAV[user.role] : NAV.GUEST.slice(0, 3)) ?? [];
@@ -109,6 +119,16 @@ export default function AppHeader() {
                     Profile settings
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuLabel className="text-xs font-medium text-neutral-500">Appearance</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={theme} onValueChange={setThemePref}>
+                  {APPEARANCE.map(({ value, label, icon: Icon }) => (
+                    <DropdownMenuRadioItem key={value} value={value}>
+                      <Icon className="size-4" />
+                      {label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={handleLogout} className="text-red-600 focus:text-red-600">
                   <LogOut className="size-4" />
                   Log out

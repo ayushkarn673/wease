@@ -5,7 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import { MotionConfig } from "framer-motion";
 import { AuthProvider } from "./context/AuthContext";
 import CityProvider from "./context/CityProvider";
-import { Toaster } from "./components/ui/sonner";
+import ThemedToaster from "./components/shared/ThemedToaster";
 import "leaflet/dist/leaflet.css";
 import "./index.css";
 
@@ -17,7 +17,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <MotionConfig reducedMotion="user">
           <App />
         </MotionConfig>
-        <Toaster position="top-right" theme="system" closeButton />
+        <ThemedToaster />
       </CityProvider>
     </AuthProvider>
   </BrowserRouter>
