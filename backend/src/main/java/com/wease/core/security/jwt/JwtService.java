@@ -3,6 +3,7 @@ package com.wease.core.security.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
+import jakarta.annotation.PostConstruct;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,9 +22,17 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
+    private SecretKey signingKey;
+
+    // Built once at startup, so a malformed secret stops the deploy instead of breaking every login.
+    // Whitespace is ignored: it is never part of Base64 and easily slips in when the secret is pasted.
+    @PostConstruct
+    void initSigningKey() {
+        signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret.replaceAll("\\s+", "")));
+    }
+
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        return signingKey;
     }
 
     public String extractUsername(String token) {

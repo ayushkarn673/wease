@@ -145,8 +145,10 @@ public class AuthServiceImpl implements AuthService {
         User existing = userRepository.findFirstByPhoneAndPhoneVerifiedTrue(phone).orElse(null);
         if (existing != null) {
             requireEnabled(existing);
+            // The code is used up only once the login has fully succeeded.
+            AuthResponse response = toAuthResponse(existing, false);
             otpService.markUsed(otp);
-            return toAuthResponse(existing, false);
+            return response;
         }
 
         String name = request.getFullName() == null ? "" : request.getFullName().trim();
@@ -170,8 +172,9 @@ public class AuthServiceImpl implements AuthService {
                 .enabled(true)
                 .emailVerified(false)
                 .build());
+        AuthResponse response = toAuthResponse(user, true);
         otpService.markUsed(otp);
-        return toAuthResponse(user, true);
+        return response;
     }
 
     @Override
